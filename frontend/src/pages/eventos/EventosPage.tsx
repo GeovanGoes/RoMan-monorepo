@@ -5,10 +5,12 @@ import { Button } from '../../components/common/Button'
 import { Modal } from '../../components/common/Modal'
 import { Table } from '../../components/common/Table'
 import { useEventos } from '../../hooks/useEventos'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Evento } from '../../types/evento'
 
 export function EventosPage() {
   const { eventos, loading, error, criar, atualizar, remover } = useEventos()
+  const { isAdmin } = useAuth()
   const [modal, setModal] = useState<'criar' | 'editar' | null>(null)
   const [selecionado, setSelecionado] = useState<Evento | null>(null)
 
@@ -19,7 +21,7 @@ export function EventosPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Eventos</h1>
-        <Button onClick={() => setModal('criar')}>+ Novo evento</Button>
+        {isAdmin && <Button onClick={() => setModal('criar')}>+ Novo evento</Button>}
       </div>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
@@ -35,14 +37,14 @@ export function EventosPage() {
             { header: 'Local', render: e => e.local },
             { header: 'Início', render: e => new Date(e.dataInicio).toLocaleDateString('pt-BR') },
             { header: 'Fim', render: e => new Date(e.dataFim).toLocaleDateString('pt-BR') },
-            {
-              header: 'Ações', render: e => (
+            ...(isAdmin ? [{
+              header: 'Ações', render: (e: Evento) => (
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => abrirEditar(e)}>Editar</Button>
                   <Button variant="danger" onClick={() => remover(e.id)}>Remover</Button>
                 </div>
               )
-            },
+            }] : []),
           ]}
         />
       )}

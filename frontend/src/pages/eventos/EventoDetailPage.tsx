@@ -6,6 +6,7 @@ import { Modal } from '../../components/common/Modal'
 import { eventoService } from '../../services/eventoService'
 import { participanteService } from '../../services/participanteService'
 import { categoriaService } from '../../services/categoriaService'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Evento, EventoParticipante, Compra, AdicionarCompraPayload, RateioItem } from '../../types/evento'
 import type { Participante } from '../../types/participante'
 import type { CategoriaConsumo } from '../../types/categoria'
@@ -23,6 +24,7 @@ interface GerenciarForm {
 
 export function EventoDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const { isAdmin } = useAuth()
   const [evento, setEvento] = useState<Evento | null>(null)
   const [participantesEvento, setParticipantesEvento] = useState<EventoParticipante[]>([])
   const [compras, setCompras] = useState<Compra[]>([])
@@ -189,7 +191,7 @@ export function EventoDetailPage() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-700">Participantes</h2>
-          {disponiveis.length > 0 && (
+          {isAdmin && disponiveis.length > 0 && (
             <Button onClick={abrirVincular}>+ Vincular participante</Button>
           )}
         </div>
@@ -201,14 +203,14 @@ export function EventoDetailPage() {
             { header: 'Nome', render: ep => nomeParticipante(ep.participanteId) },
             { header: 'Menor de idade', render: ep => ep.menorDeIdade ? 'Sim' : 'Não' },
             { header: 'Não consome', render: ep => ep.categoriasExcluidas.map(nomeCategoria).join(', ') || '—' },
-            {
-              header: 'Ações', render: ep => (
+            ...(isAdmin ? [{
+              header: 'Ações', render: (ep: EventoParticipante) => (
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => abrirGerenciar(ep)}>Gerenciar</Button>
                   <Button variant="danger" onClick={() => desvincular(ep.participanteId)}>Desvincular</Button>
                 </div>
               )
-            },
+            }] : []),
           ]}
         />
       </section>
@@ -217,7 +219,7 @@ export function EventoDetailPage() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-700">Compras</h2>
-          <Button onClick={() => setModalCompra(true)}>+ Adicionar compra</Button>
+          {isAdmin && <Button onClick={() => setModalCompra(true)}>+ Adicionar compra</Button>}
         </div>
         <Table
           keyExtractor={c => c.id}
@@ -228,7 +230,11 @@ export function EventoDetailPage() {
             { header: 'Categoria', render: c => nomeCategoria(c.categoriaId) },
             { header: 'Valor', render: c => `R$ ${c.valor.toFixed(2)}` },
             { header: 'Pago por', render: c => c.pagadoresIds.map(nomeParticipante).join(', ') },
-            { header: 'Ações', render: c => <Button variant="danger" onClick={() => removerCompra(c.id)}>Remover</Button> },
+            ...(isAdmin ? [{
+              header: 'Ações', render: (c: Compra) => (
+                <Button variant="danger" onClick={() => removerCompra(c.id)}>Remover</Button>
+              )
+            }] : []),
           ]}
         />
       </section>

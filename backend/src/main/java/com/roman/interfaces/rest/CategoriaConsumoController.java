@@ -7,6 +7,7 @@ import com.roman.interfaces.dto.response.CategoriaConsumoResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class CategoriaConsumoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoriaConsumoResponse> criar(@Valid @RequestBody CriarCategoriaConsumoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CategoriaConsumoResponse.from(criarUseCase.execute(request.nome(), request.descricao())));
@@ -51,12 +53,14 @@ public class CategoriaConsumoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoriaConsumoResponse atualizar(@PathVariable UUID id,
                                               @Valid @RequestBody AtualizarCategoriaConsumoRequest request) {
         return CategoriaConsumoResponse.from(atualizarUseCase.execute(id, request.nome(), request.descricao()));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remover(@PathVariable UUID id) {
         removerUseCase.execute(id);
