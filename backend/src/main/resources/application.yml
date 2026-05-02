@@ -19,3 +19,28 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:fallback-dev-secret-min-64chars-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+    access-token-expiration: 900
+    refresh-token-expiration: 604800
+  encryption:
+    field-key: ${FIELD_ENCRYPTION_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+    email-hmac-key: ${EMAIL_HMAC_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+  frontend:
+    origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+    url: ${FRONTEND_URL:http://localhost:3000}
+
+spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

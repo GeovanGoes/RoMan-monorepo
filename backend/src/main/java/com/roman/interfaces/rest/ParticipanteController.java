@@ -7,6 +7,7 @@ import com.roman.interfaces.dto.response.ParticipanteResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class ParticipanteController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ParticipanteResponse> criar(@Valid @RequestBody CriarParticipanteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ParticipanteResponse.from(criarUseCase.execute(request.nome(), request.username())));
@@ -51,12 +53,14 @@ public class ParticipanteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ParticipanteResponse atualizar(@PathVariable UUID id,
                                           @Valid @RequestBody AtualizarParticipanteRequest request) {
         return ParticipanteResponse.from(atualizarUseCase.execute(id, request.nome(), request.username()));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remover(@PathVariable UUID id) {
         removerUseCase.execute(id);

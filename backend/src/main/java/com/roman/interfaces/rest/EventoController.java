@@ -12,6 +12,7 @@ import com.roman.interfaces.dto.response.RateioItemResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -69,6 +70,7 @@ public class EventoController {
     // --- Evento CRUD ---
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventoResponse> criar(@Valid @RequestBody CriarEventoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(EventoResponse.from(criarUseCase.execute(
@@ -86,12 +88,14 @@ public class EventoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public EventoResponse atualizar(@PathVariable UUID id, @Valid @RequestBody AtualizarEventoRequest request) {
         return EventoResponse.from(atualizarUseCase.execute(
                 id, request.nome(), request.local(), request.dataInicio(), request.dataFim()));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remover(@PathVariable UUID id) {
         removerUseCase.execute(id);
@@ -105,6 +109,7 @@ public class EventoController {
     }
 
     @PostMapping("/{id}/participantes/{participanteId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventoParticipanteResponse> vincularParticipante(
             @PathVariable UUID id,
             @PathVariable UUID participanteId,
@@ -115,6 +120,7 @@ public class EventoController {
     }
 
     @DeleteMapping("/{id}/participantes/{participanteId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void desvincularParticipante(@PathVariable UUID id, @PathVariable UUID participanteId) {
         desvincularUseCase.execute(id, participanteId);
@@ -123,6 +129,7 @@ public class EventoController {
     // --- Exclusões de categoria ---
 
     @PostMapping("/{id}/participantes/{participanteId}/exclusoes/{categoriaId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventoParticipanteResponse> adicionarExclusao(
             @PathVariable UUID id,
             @PathVariable UUID participanteId,
@@ -132,6 +139,7 @@ public class EventoController {
     }
 
     @DeleteMapping("/{id}/participantes/{participanteId}/exclusoes/{categoriaId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removerExclusao(@PathVariable UUID id, @PathVariable UUID participanteId, @PathVariable UUID categoriaId) {
         removerExclusaoUseCase.execute(id, participanteId, categoriaId);
@@ -140,6 +148,7 @@ public class EventoController {
     // --- Compras ---
 
     @PostMapping("/{id}/compras")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CompraResponse> adicionarCompra(@PathVariable UUID id,
                                                           @Valid @RequestBody AdicionarCompraRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -153,6 +162,7 @@ public class EventoController {
     }
 
     @DeleteMapping("/{id}/compras/{compraId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removerCompra(@PathVariable UUID id, @PathVariable UUID compraId) {
         removerCompraUseCase.execute(compraId);
