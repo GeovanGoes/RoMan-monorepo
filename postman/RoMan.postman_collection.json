@@ -1,0 +1,824 @@
+{
+  "info": {
+    "_postman_id": "roman-api-v1",
+    "name": "RoMan API",
+    "description": "Collection completa da API RoMan — Rolê Manager.\n\nExecute no Collection Runner nesta ordem para o fluxo E2E:\n01 Participantes → 02 Categorias → 03 Eventos → 04 Participantes no Evento → 05 Exclusões → 06 Compras → 07 Rateio → 08 Cleanup\n\nAs variáveis de coleção (participanteId, participante2Id, categoriaId, eventoId, compraId) são capturadas automaticamente pelos scripts de teste.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",         "value": "http://localhost:8080/api/v1", "type": "string" },
+    { "key": "participanteId",  "value": "", "type": "string" },
+    { "key": "participante2Id", "value": "", "type": "string" },
+    { "key": "categoriaId",     "value": "", "type": "string" },
+    { "key": "eventoId",        "value": "", "type": "string" },
+    { "key": "compraId",        "value": "", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "01 - Participantes",
+      "description": "CRUD de participantes. Username aceita apenas letras minúsculas, números e underscore.",
+      "item": [
+
+        {
+          "name": "Criar Participante 1",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('Tem campo id (UUID)', () => pm.expect(json.id).to.be.a('string').and.match(/^[0-9a-f-]{36}$/i));",
+            "pm.test('Nome correto', () => pm.expect(json.nome).to.eql('Ana Souza'));",
+            "pm.test('Username correto', () => pm.expect(json.username).to.eql('ana_souza'));",
+            "pm.test('createdAt presente', () => pm.expect(json.createdAt).to.be.a('string'));",
+            "pm.test('updatedAt presente', () => pm.expect(json.updatedAt).to.be.a('string'));",
+            "pm.collectionVariables.set('participanteId', json.id);",
+            "console.log('[✓] participanteId salvo:', json.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Ana Souza\",\n  \"username\": \"ana_souza\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] },
+            "description": "Cria um participante. Username: só minúsculas, dígitos e underscore (3–100 chars). Nome: 2–255 chars."
+          },
+          "response": [
+            {
+              "name": "201 - Participante criado",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Ana Souza\",\n  \"username\": \"ana_souza\"\n}" }, "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"nome\": \"Ana Souza\",\n  \"username\": \"ana_souza\",\n  \"createdAt\": \"2026-05-02T10:00:00\",\n  \"updatedAt\": \"2026-05-02T10:00:00\"\n}"
+            },
+            {
+              "name": "400 - Validação: username inválido",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Ana\",\n  \"username\": \"Ana Souza!\"\n}" }, "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] } },
+              "status": "Bad Request", "code": 400, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/problem+json" }], "cookie": [],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Bad Request\",\n  \"status\": 400,\n  \"detail\": \"Username deve conter apenas letras minúsculas, números e underscore\"\n}"
+            },
+            {
+              "name": "409 - Username já existe",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Outra Ana\",\n  \"username\": \"ana_souza\"\n}" }, "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] } },
+              "status": "Conflict", "code": 409, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/problem+json" }], "cookie": [],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Conflict\",\n  \"status\": 409,\n  \"detail\": \"Username 'ana_souza' já está em uso\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Criar Participante 2",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('Tem id', () => pm.expect(json.id).to.be.a('string'));",
+            "pm.test('Nome correto', () => pm.expect(json.nome).to.eql('Bruno Lima'));",
+            "pm.collectionVariables.set('participante2Id', json.id);",
+            "console.log('[✓] participante2Id salvo:', json.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Bruno Lima\",\n  \"username\": \"bruno_lima\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] },
+            "description": "Segundo participante — usado como pagador nas Compras e no Rateio."
+          },
+          "response": [
+            {
+              "name": "201 - Participante 2 criado",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Bruno Lima\",\n  \"username\": \"bruno_lima\"\n}" }, "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"b2c3d4e5-f6a7-8901-bcde-f12345678901\",\n  \"nome\": \"Bruno Lima\",\n  \"username\": \"bruno_lima\",\n  \"createdAt\": \"2026-05-02T10:01:00\",\n  \"updatedAt\": \"2026-05-02T10:01:00\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Listar Participantes",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+            "pm.test('Contém ao menos 2 participantes', () => pm.expect(json.length).to.be.at.least(2));",
+            "pm.test('Cada item tem id, nome e username', () => {",
+            "  json.forEach(p => {",
+            "    pm.expect(p.id).to.be.a('string');",
+            "    pm.expect(p.nome).to.be.a('string');",
+            "    pm.expect(p.username).to.be.a('string');",
+            "  });",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] },
+            "description": "Retorna apenas participantes ativos (deletedAt == null)."
+          },
+          "response": [
+            {
+              "name": "200 - Lista de participantes",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/participantes", "host": ["{{baseUrl}}"], "path": ["participantes"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"nome\": \"Ana Souza\",\n    \"username\": \"ana_souza\",\n    \"createdAt\": \"2026-05-02T10:00:00\",\n    \"updatedAt\": \"2026-05-02T10:00:00\"\n  },\n  {\n    \"id\": \"b2c3d4e5-f6a7-8901-bcde-f12345678901\",\n    \"nome\": \"Bruno Lima\",\n    \"username\": \"bruno_lima\",\n    \"createdAt\": \"2026-05-02T10:01:00\",\n    \"updatedAt\": \"2026-05-02T10:01:00\"\n  }\n]"
+            }
+          ]
+        },
+
+        {
+          "name": "Buscar Participante por ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "const pid = pm.collectionVariables.get('participanteId');",
+            "pm.test('ID bate com o solicitado', () => pm.expect(json.id).to.eql(pid));",
+            "pm.test('Nome presente', () => pm.expect(json.nome).to.be.a('string'));",
+            "pm.test('Username presente', () => pm.expect(json.username).to.be.a('string'));"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/participantes/{{participanteId}}", "host": ["{{baseUrl}}"], "path": ["participantes", "{{participanteId}}"] },
+            "description": "Busca participante ativo pelo UUID. Retorna 404 se não existir ou estiver deletado."
+          },
+          "response": [
+            {
+              "name": "200 - Participante encontrado",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/participantes/a1b2c3d4-e5f6-7890-abcd-ef1234567890", "host": ["{{baseUrl}}"], "path": ["participantes", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"nome\": \"Ana Souza\",\n  \"username\": \"ana_souza\",\n  \"createdAt\": \"2026-05-02T10:00:00\",\n  \"updatedAt\": \"2026-05-02T10:00:00\"\n}"
+            },
+            {
+              "name": "404 - Participante não encontrado",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/participantes/00000000-0000-0000-0000-000000000000", "host": ["{{baseUrl}}"], "path": ["participantes", "00000000-0000-0000-0000-000000000000"] } },
+              "status": "Not Found", "code": 404, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/problem+json" }], "cookie": [],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Found\",\n  \"status\": 404,\n  \"detail\": \"Participante não encontrado\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Atualizar Participante",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Nome atualizado', () => pm.expect(json.nome).to.eql('Ana Costa'));",
+            "pm.test('Username atualizado', () => pm.expect(json.username).to.eql('ana_costa'));",
+            "pm.test('updatedAt alterado', () => pm.expect(json.updatedAt).to.be.a('string'));"
+          ]}}],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Ana Costa\",\n  \"username\": \"ana_costa\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/participantes/{{participanteId}}", "host": ["{{baseUrl}}"], "path": ["participantes", "{{participanteId}}"] },
+            "description": "Atualiza nome e/ou username. Retorna 409 se o novo username já estiver em uso por outro participante."
+          },
+          "response": [
+            {
+              "name": "200 - Participante atualizado",
+              "originalRequest": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Ana Costa\",\n  \"username\": \"ana_costa\"\n}" }, "url": { "raw": "{{baseUrl}}/participantes/a1b2c3d4-e5f6-7890-abcd-ef1234567890", "host": ["{{baseUrl}}"], "path": ["participantes", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"nome\": \"Ana Costa\",\n  \"username\": \"ana_costa\",\n  \"createdAt\": \"2026-05-02T10:00:00\",\n  \"updatedAt\": \"2026-05-02T10:05:00\"\n}"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "02 - Categorias de Consumo",
+      "description": "CRUD de categorias de consumo (ex.: Bebidas Alcoólicas, Alimentação).",
+      "item": [
+
+        {
+          "name": "Criar Categoria",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('Tem id', () => pm.expect(json.id).to.be.a('string').and.match(/^[0-9a-f-]{36}$/i));",
+            "pm.test('Nome correto', () => pm.expect(json.nome).to.eql('Bebidas Alcoólicas'));",
+            "pm.test('Descrição presente', () => pm.expect(json.descricao).to.be.a('string'));",
+            "pm.collectionVariables.set('categoriaId', json.id);",
+            "console.log('[✓] categoriaId salvo:', json.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Bebidas Alcoólicas\",\n  \"descricao\": \"Cervejas, vinhos, destilados e drinks\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"] },
+            "description": "Cria uma categoria de consumo. O campo descricao é opcional."
+          },
+          "response": [
+            {
+              "name": "201 - Categoria criada",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Bebidas Alcoólicas\",\n  \"descricao\": \"Cervejas, vinhos, destilados e drinks\"\n}" }, "url": { "raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n  \"nome\": \"Bebidas Alcoólicas\",\n  \"descricao\": \"Cervejas, vinhos, destilados e drinks\",\n  \"createdAt\": \"2026-05-02T10:10:00\",\n  \"updatedAt\": \"2026-05-02T10:10:00\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Listar Categorias",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+            "pm.test('Contém ao menos 1 categoria', () => pm.expect(json.length).to.be.at.least(1));",
+            "pm.test('Estrutura de cada item', () => {",
+            "  json.forEach(c => {",
+            "    pm.expect(c.id).to.be.a('string');",
+            "    pm.expect(c.nome).to.be.a('string');",
+            "  });",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"] }
+          },
+          "response": [
+            {
+              "name": "200 - Lista de categorias",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"id\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n    \"nome\": \"Bebidas Alcoólicas\",\n    \"descricao\": \"Cervejas, vinhos, destilados e drinks\",\n    \"createdAt\": \"2026-05-02T10:10:00\",\n    \"updatedAt\": \"2026-05-02T10:10:00\"\n  }\n]"
+            }
+          ]
+        },
+
+        {
+          "name": "Buscar Categoria por ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "const cid = pm.collectionVariables.get('categoriaId');",
+            "pm.test('ID bate', () => pm.expect(json.id).to.eql(cid));",
+            "pm.test('Nome presente', () => pm.expect(json.nome).to.be.a('string'));"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/categorias/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["categorias", "{{categoriaId}}"] }
+          },
+          "response": [
+            {
+              "name": "200 - Categoria encontrada",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/categorias/c3d4e5f6-a7b8-9012-cdef-123456789012", "host": ["{{baseUrl}}"], "path": ["categorias", "c3d4e5f6-a7b8-9012-cdef-123456789012"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n  \"nome\": \"Bebidas Alcoólicas\",\n  \"descricao\": \"Cervejas, vinhos, destilados e drinks\",\n  \"createdAt\": \"2026-05-02T10:10:00\",\n  \"updatedAt\": \"2026-05-02T10:10:00\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Atualizar Categoria",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Nome atualizado', () => pm.expect(json.nome).to.eql('Bebidas'));",
+            "pm.test('Descrição atualizada', () => pm.expect(json.descricao).to.eql('Cervejas e drinks'));"
+          ]}}],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Bebidas\",\n  \"descricao\": \"Cervejas e drinks\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/categorias/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["categorias", "{{categoriaId}}"] }
+          },
+          "response": [
+            {
+              "name": "200 - Categoria atualizada",
+              "originalRequest": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Bebidas\",\n  \"descricao\": \"Cervejas e drinks\"\n}" }, "url": { "raw": "{{baseUrl}}/categorias/c3d4e5f6-a7b8-9012-cdef-123456789012", "host": ["{{baseUrl}}"], "path": ["categorias", "c3d4e5f6-a7b8-9012-cdef-123456789012"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n  \"nome\": \"Bebidas\",\n  \"descricao\": \"Cervejas e drinks\",\n  \"createdAt\": \"2026-05-02T10:10:00\",\n  \"updatedAt\": \"2026-05-02T10:12:00\"\n}"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "03 - Eventos",
+      "description": "CRUD de eventos/rolês. Datas no formato ISO-8601 (YYYY-MM-DD). Remoção é hard delete em cascata.",
+      "item": [
+
+        {
+          "name": "Criar Evento",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('Tem id', () => pm.expect(json.id).to.be.a('string').and.match(/^[0-9a-f-]{36}$/i));",
+            "pm.test('Nome correto', () => pm.expect(json.nome).to.eql('Rolê da Praia'));",
+            "pm.test('Local correto', () => pm.expect(json.local).to.be.a('string'));",
+            "pm.test('dataInicio presente', () => pm.expect(json.dataInicio).to.be.a('string'));",
+            "pm.test('dataFim presente', () => pm.expect(json.dataFim).to.be.a('string'));",
+            "pm.collectionVariables.set('eventoId', json.id);",
+            "console.log('[✓] eventoId salvo:', json.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Rolê da Praia\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-20\",\n  \"dataFim\": \"2026-06-23\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/eventos", "host": ["{{baseUrl}}"], "path": ["eventos"] },
+            "description": "Cria um evento. Datas no formato YYYY-MM-DD. dataFim deve ser >= dataInicio."
+          },
+          "response": [
+            {
+              "name": "201 - Evento criado",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Rolê da Praia\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-20\",\n  \"dataFim\": \"2026-06-23\"\n}" }, "url": { "raw": "{{baseUrl}}/eventos", "host": ["{{baseUrl}}"], "path": ["eventos"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n  \"nome\": \"Rolê da Praia\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-20\",\n  \"dataFim\": \"2026-06-23\",\n  \"createdAt\": \"2026-05-02T10:20:00\",\n  \"updatedAt\": \"2026-05-02T10:20:00\"\n}"
+            },
+            {
+              "name": "400 - Validação: campos obrigatórios ausentes",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"\"\n}" }, "url": { "raw": "{{baseUrl}}/eventos", "host": ["{{baseUrl}}"], "path": ["eventos"] } },
+              "status": "Bad Request", "code": 400, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/problem+json" }], "cookie": [],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Bad Request\",\n  \"status\": 400,\n  \"detail\": \"Nome é obrigatório\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Listar Eventos",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+            "pm.test('Ao menos 1 evento', () => pm.expect(json.length).to.be.at.least(1));"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos", "host": ["{{baseUrl}}"], "path": ["eventos"] }
+          },
+          "response": [
+            {
+              "name": "200 - Lista de eventos",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/eventos", "host": ["{{baseUrl}}"], "path": ["eventos"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"id\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n    \"nome\": \"Rolê da Praia\",\n    \"local\": \"Florianópolis - SC\",\n    \"dataInicio\": \"2026-06-20\",\n    \"dataFim\": \"2026-06-23\",\n    \"createdAt\": \"2026-05-02T10:20:00\",\n    \"updatedAt\": \"2026-05-02T10:20:00\"\n  }\n]"
+            }
+          ]
+        },
+
+        {
+          "name": "Buscar Evento por ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "const eid = pm.collectionVariables.get('eventoId');",
+            "pm.test('ID bate', () => pm.expect(json.id).to.eql(eid));",
+            "pm.test('Nome presente', () => pm.expect(json.nome).to.be.a('string'));",
+            "pm.test('Local presente', () => pm.expect(json.local).to.be.a('string'));"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}"] }
+          },
+          "response": [
+            {
+              "name": "200 - Evento encontrado",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n  \"nome\": \"Rolê da Praia\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-20\",\n  \"dataFim\": \"2026-06-23\",\n  \"createdAt\": \"2026-05-02T10:20:00\",\n  \"updatedAt\": \"2026-05-02T10:20:00\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Atualizar Evento",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Nome atualizado', () => pm.expect(json.nome).to.eql('Rolê da Praia 2026'));",
+            "pm.test('Datas atualizadas', () => {",
+            "  pm.expect(json.dataInicio).to.eql('2026-06-21');",
+            "  pm.expect(json.dataFim).to.eql('2026-06-24');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Rolê da Praia 2026\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-21\",\n  \"dataFim\": \"2026-06-24\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}"] }
+          },
+          "response": [
+            {
+              "name": "200 - Evento atualizado",
+              "originalRequest": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Rolê da Praia 2026\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-21\",\n  \"dataFim\": \"2026-06-24\"\n}" }, "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n  \"nome\": \"Rolê da Praia 2026\",\n  \"local\": \"Florianópolis - SC\",\n  \"dataInicio\": \"2026-06-21\",\n  \"dataFim\": \"2026-06-24\",\n  \"createdAt\": \"2026-05-02T10:20:00\",\n  \"updatedAt\": \"2026-05-02T10:22:00\"\n}"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "04 - Participantes no Evento",
+      "description": "Vincula/desvincula participantes a um evento. O campo menorDeIdade é definido no vínculo (contextual por evento).",
+      "item": [
+
+        {
+          "name": "Vincular Participante 1 (adulto)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('Tem id do vínculo', () => pm.expect(json.id).to.be.a('string'));",
+            "pm.test('eventoId correto', () => pm.expect(json.eventoId).to.eql(pm.collectionVariables.get('eventoId')));",
+            "pm.test('participanteId correto', () => pm.expect(json.participanteId).to.eql(pm.collectionVariables.get('participanteId')));",
+            "pm.test('menorDeIdade false', () => pm.expect(json.menorDeIdade).to.be.false);",
+            "pm.test('categoriasExcluidas vazio', () => pm.expect(json.categoriasExcluidas).to.be.an('array').and.be.empty);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"menorDeIdade\": false\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes/{{participanteId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes", "{{participanteId}}"] },
+            "description": "Vincula o participante ao evento. menorDeIdade:true exclui o participante do rateio de todas as categorias."
+          },
+          "response": [
+            {
+              "name": "201 - Participante vinculado",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"menorDeIdade\": false\n}" }, "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/participantes/a1b2c3d4-e5f6-7890-abcd-ef1234567890", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "participantes", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"f6a7b8c9-d0e1-2345-fabc-456789012345\",\n  \"eventoId\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n  \"participanteId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"menorDeIdade\": false,\n  \"categoriasExcluidas\": [],\n  \"createdAt\": \"2026-05-02T10:30:00\"\n}"
+            },
+            {
+              "name": "409 - Participante já vinculado",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"menorDeIdade\": false\n}" }, "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/participantes/a1b2c3d4-e5f6-7890-abcd-ef1234567890", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "participantes", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"] } },
+              "status": "Conflict", "code": 409, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/problem+json" }], "cookie": [],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Conflict\",\n  \"status\": 409,\n  \"detail\": \"Participante já está vinculado a este evento\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Vincular Participante 2 (adulto)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('menorDeIdade false', () => pm.expect(json.menorDeIdade).to.be.false);",
+            "pm.test('participanteId correto', () => pm.expect(json.participanteId).to.eql(pm.collectionVariables.get('participante2Id')));"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"menorDeIdade\": false\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes/{{participante2Id}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes", "{{participante2Id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Listar Participantes do Evento",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+            "pm.test('2 participantes vinculados', () => pm.expect(json.length).to.eql(2));",
+            "pm.test('Estrutura do vínculo', () => {",
+            "  json.forEach(ep => {",
+            "    pm.expect(ep.id).to.be.a('string');",
+            "    pm.expect(ep.eventoId).to.be.a('string');",
+            "    pm.expect(ep.participanteId).to.be.a('string');",
+            "    pm.expect(ep.menorDeIdade).to.be.a('boolean');",
+            "    pm.expect(ep.categoriasExcluidas).to.be.an('array');",
+            "  });",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes"] }
+          },
+          "response": [
+            {
+              "name": "200 - Participantes do evento",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/participantes", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "participantes"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"id\": \"f6a7b8c9-d0e1-2345-fabc-456789012345\",\n    \"eventoId\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n    \"participanteId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"menorDeIdade\": false,\n    \"categoriasExcluidas\": [],\n    \"createdAt\": \"2026-05-02T10:30:00\"\n  },\n  {\n    \"id\": \"e7a8b9c0-d1e2-3456-abcd-567890123456\",\n    \"eventoId\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n    \"participanteId\": \"b2c3d4e5-f6a7-8901-bcde-f12345678901\",\n    \"menorDeIdade\": false,\n    \"categoriasExcluidas\": [],\n    \"createdAt\": \"2026-05-02T10:31:00\"\n  }\n]"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "05 - Exclusões de Categoria",
+      "description": "Gerencia quais categorias um participante NÃO consome no evento. Participantes excluídos não entram no rateio daquela categoria.",
+      "item": [
+
+        {
+          "name": "Adicionar Exclusão (P2 não consome bebidas)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "const catId = pm.collectionVariables.get('categoriaId');",
+            "pm.test('categoriasExcluidas contém a categoria', () => {",
+            "  pm.expect(json.categoriasExcluidas).to.include(catId);",
+            "});",
+            "pm.test('participanteId correto', () => pm.expect(json.participanteId).to.eql(pm.collectionVariables.get('participante2Id')));"
+          ]}}],
+          "request": {
+            "method": "POST", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes/{{participante2Id}}/exclusoes/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes", "{{participante2Id}}", "exclusoes", "{{categoriaId}}"] },
+            "description": "Registra que P2 não consome a categoria indicada neste evento. Sem body."
+          },
+          "response": [
+            {
+              "name": "201 - Exclusão adicionada",
+              "originalRequest": { "method": "POST", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/participantes/b2c3d4e5-f6a7-8901-bcde-f12345678901/exclusoes/c3d4e5f6-a7b8-9012-cdef-123456789012", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "participantes", "b2c3d4e5-f6a7-8901-bcde-f12345678901", "exclusoes", "c3d4e5f6-a7b8-9012-cdef-123456789012"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"e7a8b9c0-d1e2-3456-abcd-567890123456\",\n  \"eventoId\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n  \"participanteId\": \"b2c3d4e5-f6a7-8901-bcde-f12345678901\",\n  \"menorDeIdade\": false,\n  \"categoriasExcluidas\": [\"c3d4e5f6-a7b8-9012-cdef-123456789012\"],\n  \"createdAt\": \"2026-05-02T10:31:00\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Remover Exclusão (P2 volta a consumir bebidas)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+            "pm.test('Sem body', () => pm.expect(pm.response.text()).to.be.empty);"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes/{{participante2Id}}/exclusoes/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes", "{{participante2Id}}", "exclusoes", "{{categoriaId}}"] },
+            "description": "Remove a exclusão. Após isto P2 volta a ser elegível para o rateio desta categoria."
+          },
+          "response": [
+            {
+              "name": "204 - Exclusão removida",
+              "originalRequest": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/participantes/b2c3d4e5-f6a7-8901-bcde-f12345678901/exclusoes/c3d4e5f6-a7b8-9012-cdef-123456789012", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "participantes", "b2c3d4e5-f6a7-8901-bcde-f12345678901", "exclusoes", "c3d4e5f6-a7b8-9012-cdef-123456789012"] } },
+              "status": "No Content", "code": 204, "_postman_previewlanguage": "text",
+              "header": [], "cookie": [], "body": ""
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "06 - Compras",
+      "description": "Compras vinculadas a um evento e a uma categoria. Os pagadores são os participantes que adiantaram o valor.",
+      "item": [
+
+        {
+          "name": "Adicionar Compra",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('Tem id', () => pm.expect(json.id).to.be.a('string').and.match(/^[0-9a-f-]{36}$/i));",
+            "pm.test('Descrição correta', () => pm.expect(json.descricao).to.eql('Cervejas e drinks'));",
+            "pm.test('Valor correto', () => pm.expect(json.valor).to.eql(150.00));",
+            "pm.test('eventoId correto', () => pm.expect(json.eventoId).to.eql(pm.collectionVariables.get('eventoId')));",
+            "pm.test('categoriaId correto', () => pm.expect(json.categoriaId).to.eql(pm.collectionVariables.get('categoriaId')));",
+            "pm.test('pagadoresIds é array não vazio', () => {",
+            "  pm.expect(json.pagadoresIds).to.be.an('array').and.not.be.empty;",
+            "});",
+            "pm.collectionVariables.set('compraId', json.id);",
+            "console.log('[✓] compraId salvo:', json.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Cervejas e drinks\",\n  \"valor\": 150.00,\n  \"categoriaId\": \"{{categoriaId}}\",\n  \"pagadoresIds\": [\"{{participanteId}}\"]\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/compras", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "compras"] },
+            "description": "Registra uma compra. pagadoresIds lista quem adiantou o valor. valor mínimo: 0.01."
+          },
+          "response": [
+            {
+              "name": "201 - Compra adicionada",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Cervejas e drinks\",\n  \"valor\": 150.00,\n  \"categoriaId\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n  \"pagadoresIds\": [\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"]\n}" }, "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/compras", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "compras"] } },
+              "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "{\n  \"id\": \"e5f6a7b8-c9d0-1234-efab-345678901234\",\n  \"descricao\": \"Cervejas e drinks\",\n  \"valor\": 150.00,\n  \"eventoId\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n  \"categoriaId\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n  \"pagadoresIds\": [\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"],\n  \"createdAt\": \"2026-05-02T10:40:00\",\n  \"updatedAt\": \"2026-05-02T10:40:00\"\n}"
+            },
+            {
+              "name": "400 - Validação: sem pagadores",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"descricao\": \"Teste\",\n  \"valor\": 50.00,\n  \"categoriaId\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n  \"pagadoresIds\": []\n}" }, "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/compras", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "compras"] } },
+              "status": "Bad Request", "code": 400, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/problem+json" }], "cookie": [],
+              "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Bad Request\",\n  \"status\": 400,\n  \"detail\": \"Ao menos um pagador é obrigatório\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "Listar Compras do Evento",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+            "pm.test('Ao menos 1 compra', () => pm.expect(json.length).to.be.at.least(1));",
+            "pm.test('Estrutura de cada compra', () => {",
+            "  json.forEach(c => {",
+            "    pm.expect(c.id).to.be.a('string');",
+            "    pm.expect(c.descricao).to.be.a('string');",
+            "    pm.expect(c.valor).to.be.a('number');",
+            "    pm.expect(c.pagadoresIds).to.be.an('array').and.not.be.empty;",
+            "  });",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/compras", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "compras"] }
+          },
+          "response": [
+            {
+              "name": "200 - Lista de compras",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/compras", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "compras"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"id\": \"e5f6a7b8-c9d0-1234-efab-345678901234\",\n    \"descricao\": \"Cervejas e drinks\",\n    \"valor\": 150.00,\n    \"eventoId\": \"d4e5f6a7-b8c9-0123-defa-234567890123\",\n    \"categoriaId\": \"c3d4e5f6-a7b8-9012-cdef-123456789012\",\n    \"pagadoresIds\": [\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"],\n    \"createdAt\": \"2026-05-02T10:40:00\",\n    \"updatedAt\": \"2026-05-02T10:40:00\"\n  }\n]"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "07 - Rateio",
+      "description": "Calcula quanto cada participante deve pagar ou receber de ressarcimento.\nLógica: custo da compra ÷ nº de elegíveis (não menores, não excluídos da categoria).\nPagadores recebem crédito proporcional ao que adiantaram.",
+      "item": [
+
+        {
+          "name": "Calcular Rateio do Evento",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+            "pm.test('Número de itens igual ao de participantes', () => pm.expect(json.length).to.eql(2));",
+            "pm.test('Estrutura de cada item de rateio', () => {",
+            "  json.forEach(item => {",
+            "    pm.expect(item.participanteId).to.be.a('string');",
+            "    pm.expect(item.nomeParticipante).to.be.a('string');",
+            "    pm.expect(item.totalDevido).to.be.a('number');",
+            "    pm.expect(item.totalPago).to.be.a('number');",
+            "    pm.expect(item.saldo).to.be.a('number');",
+            "  });",
+            "});",
+            "pm.test('Soma dos saldos é zero (balanço)', () => {",
+            "  const soma = json.reduce((acc, item) => acc + item.saldo, 0);",
+            "  pm.expect(Math.abs(soma)).to.be.below(0.05);",
+            "});",
+            "const p1Id = pm.collectionVariables.get('participanteId');",
+            "const p1 = json.find(i => i.participanteId === p1Id);",
+            "if (p1) {",
+            "  pm.test('P1 (pagador) tem saldo positivo ou zero', () => pm.expect(p1.saldo).to.be.at.least(0));",
+            "}"
+          ]}}],
+          "request": {
+            "method": "GET", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/rateio", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "rateio"] },
+            "description": "Calcula o rateio. P1 pagou R$150 e ambos são elegíveis → cada um deve R$75. P1 saldo: +75 (a receber). P2 saldo: -75 (deve pagar)."
+          },
+          "response": [
+            {
+              "name": "200 - Rateio calculado (P1 pagou tudo)",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/rateio", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "rateio"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"participanteId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"nomeParticipante\": \"Ana Costa\",\n    \"totalDevido\": 75.00,\n    \"totalPago\": 150.00,\n    \"saldo\": 75.00\n  },\n  {\n    \"participanteId\": \"b2c3d4e5-f6a7-8901-bcde-f12345678901\",\n    \"nomeParticipante\": \"Bruno Lima\",\n    \"totalDevido\": 75.00,\n    \"totalPago\": 0.00,\n    \"saldo\": -75.00\n  }\n]"
+            },
+            {
+              "name": "200 - Rateio com menor de idade (não gera débito)",
+              "originalRequest": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/eventos/d4e5f6a7-b8c9-0123-defa-234567890123/rateio", "host": ["{{baseUrl}}"], "path": ["eventos", "d4e5f6a7-b8c9-0123-defa-234567890123", "rateio"] } },
+              "status": "OK", "code": 200, "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+              "body": "[\n  {\n    \"participanteId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"nomeParticipante\": \"Ana Costa\",\n    \"totalDevido\": 150.00,\n    \"totalPago\": 150.00,\n    \"saldo\": 0.00\n  },\n  {\n    \"participanteId\": \"b2c3d4e5-f6a7-8901-bcde-f12345678901\",\n    \"nomeParticipante\": \"Bruno Lima (menor)\",\n    \"totalDevido\": 0.00,\n    \"totalPago\": 0.00,\n    \"saldo\": 0.00\n  }\n]"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "08 - 🧹 Cleanup",
+      "description": "Remove todos os recursos criados durante o fluxo. Execute nesta ordem para evitar conflitos de FK:\n1. Compra → 2. Desvincular P1 → 3. Desvincular P2 → 4. Evento (cascade) → 5. Categoria → 6. Participante 1 → 7. Participante 2",
+      "item": [
+
+        {
+          "name": "Remover Compra",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+            "pm.test('Sem body', () => pm.expect(pm.response.text()).to.be.empty);"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/compras/{{compraId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "compras", "{{compraId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Desvincular Participante 1",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes/{{participanteId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes", "{{participanteId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Desvincular Participante 2",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}/participantes/{{participante2Id}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}", "participantes", "{{participante2Id}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Remover Evento",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+            "pm.collectionVariables.set('eventoId', '');"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/eventos/{{eventoId}}", "host": ["{{baseUrl}}"], "path": ["eventos", "{{eventoId}}"] },
+            "description": "Hard delete em cascata: remove o evento e todos os vínculos e compras associados."
+          },
+          "response": []
+        },
+
+        {
+          "name": "Remover Categoria",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+            "pm.collectionVariables.set('categoriaId', '');"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/categorias/{{categoriaId}}", "host": ["{{baseUrl}}"], "path": ["categorias", "{{categoriaId}}"] }
+          },
+          "response": []
+        },
+
+        {
+          "name": "Remover Participante 1 (soft delete)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+            "pm.collectionVariables.set('participanteId', '');"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/participantes/{{participanteId}}", "host": ["{{baseUrl}}"], "path": ["participantes", "{{participanteId}}"] },
+            "description": "Soft delete: seta deletedAt. O participante some da listagem mas permanece no banco."
+          },
+          "response": [
+            {
+              "name": "204 - Participante removido (soft delete)",
+              "originalRequest": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/participantes/a1b2c3d4-e5f6-7890-abcd-ef1234567890", "host": ["{{baseUrl}}"], "path": ["participantes", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"] } },
+              "status": "No Content", "code": 204, "_postman_previewlanguage": "text",
+              "header": [], "cookie": [], "body": ""
+            }
+          ]
+        },
+
+        {
+          "name": "Remover Participante 2 (soft delete)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+            "pm.collectionVariables.set('participante2Id', '');"
+          ]}}],
+          "request": {
+            "method": "DELETE", "header": [],
+            "url": { "raw": "{{baseUrl}}/participantes/{{participante2Id}}", "host": ["{{baseUrl}}"], "path": ["participantes", "{{participante2Id}}"] }
+          },
+          "response": []
+        }
+
+      ]
+    }
+
+  ]
+}
