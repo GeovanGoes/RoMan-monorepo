@@ -16,9 +16,9 @@ public class RemoverExclusaoCategoriaUseCase {
         this.repository = repository;
     }
 
-    public EventoParticipante execute(UUID eventoId, UUID participanteId, UUID categoriaId) {
-        EventoParticipante ep = repository.findByEventoIdAndParticipanteId(eventoId, participanteId)
-                .orElseThrow(() -> new EventoParticipanteNotFoundException(participanteId, eventoId));
+    public EventoParticipante execute(UUID eventoId, UUID usuarioId, UUID categoriaId) {
+        EventoParticipante ep = repository.findByEventoIdAndUsuarioId(eventoId, usuarioId)
+                .orElseThrow(() -> new EventoParticipanteNotFoundException(usuarioId, eventoId));
 
         ep.removerExclusaoCategoria(categoriaId);
         return repository.save(ep);

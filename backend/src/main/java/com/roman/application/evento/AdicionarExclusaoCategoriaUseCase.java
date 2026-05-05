@@ -21,9 +21,9 @@ public class AdicionarExclusaoCategoriaUseCase {
         this.categoriaRepository = categoriaRepository;
     }
 
-    public EventoParticipante execute(UUID eventoId, UUID participanteId, UUID categoriaId) {
-        EventoParticipante ep = epRepository.findByEventoIdAndParticipanteId(eventoId, participanteId)
-                .orElseThrow(() -> new EventoParticipanteNotFoundException(participanteId, eventoId));
+    public EventoParticipante execute(UUID eventoId, UUID usuarioId, UUID categoriaId) {
+        EventoParticipante ep = epRepository.findByEventoIdAndUsuarioId(eventoId, usuarioId)
+                .orElseThrow(() -> new EventoParticipanteNotFoundException(usuarioId, eventoId));
 
         if (!categoriaRepository.existsById(categoriaId)) {
             throw new CategoriaConsumoNotFoundException(categoriaId);

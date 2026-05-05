@@ -31,7 +31,7 @@ public class UsuarioJpaEntity {
     @Column(columnDefinition = "text")
     private String telefone;
 
-    @Column(name = "senha_hash", nullable = false)
+    @Column(name = "senha_hash")
     private String senhaHash;
 
     @Enumerated(EnumType.STRING)

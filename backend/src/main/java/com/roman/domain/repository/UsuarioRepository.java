@@ -12,5 +12,9 @@ public interface UsuarioRepository {
     Optional<Usuario> findByEmail(String email);
     boolean existsByUsername(String username);
     boolean existsByUsernameAndIdNot(String username, UUID id);
+    boolean existsByUsernameAtivo(String username);
+    boolean existsByUsernameAtivoAndIdNot(String username, UUID id);
     List<Usuario> findAllAtivos();
+    List<Usuario> findAllConvidados();
+    List<Usuario> findAllByIds(List<UUID> ids);
 }

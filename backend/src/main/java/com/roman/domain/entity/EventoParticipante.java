@@ -9,23 +9,23 @@ public class EventoParticipante {
 
     private final UUID id;
     private final UUID eventoId;
-    private final UUID participanteId;
+    private final UUID usuarioId;
     private boolean menorDeIdade;
     private final Set<UUID> categoriasExcluidas;
     private final LocalDateTime createdAt;
 
-    public EventoParticipante(UUID id, UUID eventoId, UUID participanteId, boolean menorDeIdade,
+    public EventoParticipante(UUID id, UUID eventoId, UUID usuarioId, boolean menorDeIdade,
                               Set<UUID> categoriasExcluidas, LocalDateTime createdAt) {
         this.id = id;
         this.eventoId = eventoId;
-        this.participanteId = participanteId;
+        this.usuarioId = usuarioId;
         this.menorDeIdade = menorDeIdade;
         this.categoriasExcluidas = categoriasExcluidas != null ? new HashSet<>(categoriasExcluidas) : new HashSet<>();
         this.createdAt = createdAt;
     }
 
-    public static EventoParticipante criar(UUID eventoId, UUID participanteId, boolean menorDeIdade) {
-        return new EventoParticipante(UUID.randomUUID(), eventoId, participanteId, menorDeIdade,
+    public static EventoParticipante criar(UUID eventoId, UUID usuarioId, boolean menorDeIdade) {
+        return new EventoParticipante(UUID.randomUUID(), eventoId, usuarioId, menorDeIdade,
                 new HashSet<>(), LocalDateTime.now());
     }
 
@@ -43,7 +43,7 @@ public class EventoParticipante {
 
     public UUID getId() { return id; }
     public UUID getEventoId() { return eventoId; }
-    public UUID getParticipanteId() { return participanteId; }
+    public UUID getUsuarioId() { return usuarioId; }
     public boolean isMenorDeIdade() { return menorDeIdade; }
     public Set<UUID> getCategoriasExcluidas() { return new HashSet<>(categoriasExcluidas); }
     public LocalDateTime getCreatedAt() { return createdAt; }

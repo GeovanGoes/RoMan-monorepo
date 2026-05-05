@@ -24,8 +24,8 @@ public class EventoParticipanteJpaEntity {
     @Column(name = "evento_id", nullable = false, columnDefinition = "uuid")
     private UUID eventoId;
 
-    @Column(name = "participante_id", nullable = false, columnDefinition = "uuid")
-    private UUID participanteId;
+    @Column(name = "usuario_id", nullable = false, columnDefinition = "uuid")
+    private UUID usuarioId;
 
     @Column(name = "menor_de_idade", nullable = false)
     private boolean menorDeIdade;

@@ -1,5 +1,6 @@
 package com.roman.infrastructure.persistence.adapter;
 
+import com.roman.domain.entity.PerfilUsuario;
 import com.roman.domain.entity.Usuario;
 import com.roman.domain.repository.UsuarioRepository;
 import com.roman.infrastructure.persistence.entity.UsuarioJpaEntity;
@@ -95,7 +96,28 @@ public class UsuarioRepositoryAdapter implements UsuarioRepository {
     }
 
     @Override
+    public boolean existsByUsernameAtivo(String username) {
+        return jpaRepository.existsByUsernameAndDeletedAtIsNull(username);
+    }
+
+    @Override
+    public boolean existsByUsernameAtivoAndIdNot(String username, UUID id) {
+        return jpaRepository.existsByUsernameAndDeletedAtIsNullAndIdNot(username, id);
+    }
+
+    @Override
     public List<Usuario> findAllAtivos() {
         return jpaRepository.findAllByDeletedAtIsNull().stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<Usuario> findAllConvidados() {
+        return jpaRepository.findAllByPerfilAndDeletedAtIsNull(PerfilUsuario.CONVIDADO)
+                .stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<Usuario> findAllByIds(List<UUID> ids) {
+        return jpaRepository.findAllById(ids).stream().map(this::toDomain).toList();
     }
 }

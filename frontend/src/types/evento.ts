@@ -8,12 +8,19 @@ export interface Evento {
   updatedAt: string
 }
 
+export interface CategoriaExcluida {
+  id: string
+  nome: string
+}
+
 export interface EventoParticipante {
   id: string
   eventoId: string
-  participanteId: string
+  usuarioId: string
+  nomeUsuario: string
+  usernameUsuario: string
   menorDeIdade: boolean
-  categoriasExcluidas: string[]
+  categoriasExcluidas: CategoriaExcluida[]
   createdAt: string
 }
 

@@ -14,6 +14,8 @@ public class SpringUserDetails implements UserDetails {
 
     public SpringUserDetails(UsuarioJpaEntity entity) { this.entity = entity; }
 
+    public java.util.UUID getId() { return entity.getId(); }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + entity.getPerfil().name()));

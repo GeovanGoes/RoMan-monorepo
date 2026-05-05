@@ -32,6 +32,18 @@ public class Usuario {
                 true, now, now, null);
     }
 
+    public static Usuario criarConvidado(String nome, String username) {
+        LocalDateTime now = LocalDateTime.now();
+        return new Usuario(UUID.randomUUID(), nome, username, null, null, null,
+                PerfilUsuario.CONVIDADO, false, now, now, null);
+    }
+
+    public void atualizarConvidado(String nome, String username) {
+        this.nome = nome;
+        this.username = username;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void alterarSenha(String novoHash) {
         this.senhaHash = novoHash;
         this.senhaProvisoria = false;

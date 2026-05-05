@@ -9,13 +9,13 @@ import java.util.UUID;
 public record EventoParticipanteResponse(
         UUID id,
         UUID eventoId,
-        UUID participanteId,
+        UUID usuarioId,
         boolean menorDeIdade,
         Set<UUID> categoriasExcluidas,
         LocalDateTime createdAt
 ) {
     public static EventoParticipanteResponse from(EventoParticipante ep) {
-        return new EventoParticipanteResponse(ep.getId(), ep.getEventoId(), ep.getParticipanteId(),
+        return new EventoParticipanteResponse(ep.getId(), ep.getEventoId(), ep.getUsuarioId(),
                 ep.isMenorDeIdade(), ep.getCategoriasExcluidas(), ep.getCreatedAt());
     }
 }

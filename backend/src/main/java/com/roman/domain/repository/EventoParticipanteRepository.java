@@ -8,8 +8,8 @@ import java.util.UUID;
 
 public interface EventoParticipanteRepository {
     EventoParticipante save(EventoParticipante eventoParticipante);
-    Optional<EventoParticipante> findByEventoIdAndParticipanteId(UUID eventoId, UUID participanteId);
+    Optional<EventoParticipante> findByEventoIdAndUsuarioId(UUID eventoId, UUID usuarioId);
     List<EventoParticipante> findByEventoId(UUID eventoId);
-    boolean existsByEventoIdAndParticipanteId(UUID eventoId, UUID participanteId);
+    boolean existsByEventoIdAndUsuarioId(UUID eventoId, UUID usuarioId);
     void delete(EventoParticipante eventoParticipante);
 }

@@ -16,9 +16,9 @@ public class DesvincularParticipanteUseCase {
         this.repository = repository;
     }
 
-    public void execute(UUID eventoId, UUID participanteId) {
-        EventoParticipante ep = repository.findByEventoIdAndParticipanteId(eventoId, participanteId)
-                .orElseThrow(() -> new EventoParticipanteNotFoundException(participanteId, eventoId));
+    public void execute(UUID eventoId, UUID usuarioId) {
+        EventoParticipante ep = repository.findByEventoIdAndUsuarioId(eventoId, usuarioId)
+                .orElseThrow(() -> new EventoParticipanteNotFoundException(usuarioId, eventoId));
         repository.delete(ep);
     }
 }
