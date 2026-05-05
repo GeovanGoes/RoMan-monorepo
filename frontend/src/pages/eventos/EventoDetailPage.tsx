@@ -7,7 +7,7 @@ import { eventoService } from '../../services/eventoService'
 import { participanteService } from '../../services/participanteService'
 import { categoriaService } from '../../services/categoriaService'
 import { useAuth } from '../../contexts/AuthContext'
-import type { Evento, EventoParticipante, Compra, AdicionarCompraPayload, RateioItem } from '../../types/evento'
+import type { Evento, EventoParticipante, CategoriaExcluida, Compra, AdicionarCompraPayload, RateioItem } from '../../types/evento'
 import type { Participante } from '../../types/participante'
 import type { CategoriaConsumo } from '../../types/categoria'
 
@@ -71,7 +71,7 @@ export function EventoDetailPage() {
   if (loading) return <p className="p-6 text-gray-500">Carregando...</p>
   if (!evento) return <p className="p-6 text-red-600">Evento não encontrado.</p>
 
-  const participantesVinculadosIds = new Set(participantesEvento.map(ep => ep.participanteId))
+  const participantesVinculadosIds = new Set(participantesEvento.map(ep => ep.usuarioId))
   const disponiveis = todosParticipantes.filter(p => !participantesVinculadosIds.has(p.id))
   const nomeParticipante = (pid: string) => todosParticipantes.find(p => p.id === pid)?.nome ?? pid
   const nomeCategoria = (cid: string) => categorias.find(c => c.id === cid)?.nome ?? cid
@@ -91,8 +91,18 @@ export function EventoDetailPage() {
       await Promise.all(
         vincularForm.exclusoes.map(catId => eventoService.adicionarExclusao(id, vincularForm.participanteId, catId))
       )
-      const epAtualizado: EventoParticipante = { ...ep, categoriasExcluidas: vincularForm.exclusoes }
-      setParticipantesEvento(prev => [...prev, epAtualizado])
+      const participante = todosParticipantes.find(p => p.id === vincularForm.participanteId)
+      const catObjects: CategoriaExcluida[] = vincularForm.exclusoes.map(catId => ({
+        id: catId,
+        nome: categorias.find(c => c.id === catId)?.nome ?? '',
+      }))
+      const epEnriquecido: EventoParticipante = {
+        ...ep,
+        nomeUsuario: participante?.nome ?? '',
+        usernameUsuario: participante?.username ?? '',
+        categoriasExcluidas: catObjects,
+      }
+      setParticipantesEvento(prev => [...prev, epEnriquecido])
       setRateio(null)
       setModalVincular(false)
     } catch {
@@ -109,14 +119,14 @@ export function EventoDetailPage() {
     }))
   }
 
-  const desvincular = async (participanteId: string) => {
-    await eventoService.desvincularParticipante(id, participanteId)
-    setParticipantesEvento(prev => prev.filter(ep => ep.participanteId !== participanteId))
+  const desvincular = async (usuarioId: string) => {
+    await eventoService.desvincularParticipante(id, usuarioId)
+    setParticipantesEvento(prev => prev.filter(ep => ep.usuarioId !== usuarioId))
     setRateio(null)
   }
 
   const abrirGerenciar = (ep: EventoParticipante) => {
-    setGerenciar({ ep, exclusoes: [...ep.categoriasExcluidas] })
+    setGerenciar({ ep, exclusoes: ep.categoriasExcluidas.map(c => c.id) })
     setGerenciarError(null)
   }
 
@@ -125,16 +135,20 @@ export function EventoDetailPage() {
     setGerenciarLoading(true)
     setGerenciarError(null)
     const { ep, exclusoes } = gerenciar
-    const anteriores = ep.categoriasExcluidas
-    const adicionar = exclusoes.filter(c => !anteriores.includes(c))
-    const remover = anteriores.filter(c => !exclusoes.includes(c))
+    const anterioresIds = ep.categoriasExcluidas.map(c => c.id)
+    const adicionar = exclusoes.filter(c => !anterioresIds.includes(c))
+    const remover = anterioresIds.filter(c => !exclusoes.includes(c))
     try {
       await Promise.all([
-        ...adicionar.map(c => eventoService.adicionarExclusao(id, ep.participanteId, c)),
-        ...remover.map(c => eventoService.removerExclusao(id, ep.participanteId, c)),
+        ...adicionar.map(c => eventoService.adicionarExclusao(id, ep.usuarioId, c)),
+        ...remover.map(c => eventoService.removerExclusao(id, ep.usuarioId, c)),
       ])
+      const novasCats: CategoriaExcluida[] = exclusoes.map(cId => ({
+        id: cId,
+        nome: categorias.find(c => c.id === cId)?.nome ?? '',
+      }))
       setParticipantesEvento(prev =>
-        prev.map(p => p.id === ep.id ? { ...p, categoriasExcluidas: exclusoes } : p)
+        prev.map(p => p.id === ep.id ? { ...p, categoriasExcluidas: novasCats } : p)
       )
       setRateio(null)
       setGerenciar(null)
@@ -200,14 +214,14 @@ export function EventoDetailPage() {
           rows={participantesEvento}
           emptyMessage="Nenhum participante vinculado."
           columns={[
-            { header: 'Nome', render: ep => nomeParticipante(ep.participanteId) },
+            { header: 'Nome', render: ep => ep.nomeUsuario },
             { header: 'Menor de idade', render: ep => ep.menorDeIdade ? 'Sim' : 'Não' },
-            { header: 'Não consome', render: ep => ep.categoriasExcluidas.map(nomeCategoria).join(', ') || '—' },
+            { header: 'Não consome', render: ep => ep.categoriasExcluidas.map(c => c.nome).join(', ') || '—' },
             ...(isAdmin ? [{
               header: 'Ações', render: (ep: EventoParticipante) => (
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => abrirGerenciar(ep)}>Gerenciar</Button>
-                  <Button variant="danger" onClick={() => desvincular(ep.participanteId)}>Desvincular</Button>
+                  <Button variant="danger" onClick={() => desvincular(ep.usuarioId)}>Desvincular</Button>
                 </div>
               )
             }] : []),
@@ -316,7 +330,7 @@ export function EventoDetailPage() {
 
       {/* Modal: Gerenciar exclusões */}
       <Modal
-        title={`Gerenciar — ${gerenciar ? nomeParticipante(gerenciar.ep.participanteId) : ''}`}
+        title={`Gerenciar — ${gerenciar ? gerenciar.ep.nomeUsuario : ''}`}
         open={gerenciar !== null}
         onClose={() => setGerenciar(null)}
       >
@@ -370,14 +384,14 @@ export function EventoDetailPage() {
             <label className="text-sm font-medium text-gray-700">Pagadores</label>
             {participantesEvento.map(ep => (
               <label key={ep.id} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={compraForm.pagadoresIds.includes(ep.participanteId)}
+                <input type="checkbox" checked={compraForm.pagadoresIds.includes(ep.usuarioId)}
                   onChange={e => setCompraForm(f => ({
                     ...f,
                     pagadoresIds: e.target.checked
-                      ? [...f.pagadoresIds, ep.participanteId]
-                      : f.pagadoresIds.filter(pid => pid !== ep.participanteId)
+                      ? [...f.pagadoresIds, ep.usuarioId]
+                      : f.pagadoresIds.filter(pid => pid !== ep.usuarioId)
                   }))} />
-                {nomeParticipante(ep.participanteId)}
+                {ep.nomeUsuario}
               </label>
             ))}
           </div>

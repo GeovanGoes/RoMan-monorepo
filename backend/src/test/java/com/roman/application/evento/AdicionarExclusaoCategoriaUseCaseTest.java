@@ -31,15 +31,15 @@ class AdicionarExclusaoCategoriaUseCaseTest {
     @Test
     void deve_adicionar_exclusao_de_categoria() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
         UUID categoriaId = UUID.randomUUID();
-        EventoParticipante ep = EventoParticipante.criar(eventoId, participanteId, false);
+        EventoParticipante ep = EventoParticipante.criar(eventoId, usuarioId, false);
 
-        when(epRepository.findByEventoIdAndParticipanteId(eventoId, participanteId)).thenReturn(Optional.of(ep));
+        when(epRepository.findByEventoIdAndUsuarioId(eventoId, usuarioId)).thenReturn(Optional.of(ep));
         when(categoriaRepository.existsById(categoriaId)).thenReturn(true);
         when(epRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        EventoParticipante result = useCase.execute(eventoId, participanteId, categoriaId);
+        EventoParticipante result = useCase.execute(eventoId, usuarioId, categoriaId);
 
         assertThat(result.excluiCategoria(categoriaId)).isTrue();
     }
@@ -47,24 +47,24 @@ class AdicionarExclusaoCategoriaUseCaseTest {
     @Test
     void deve_lancar_excecao_quando_vinculo_nao_existe() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
-        when(epRepository.findByEventoIdAndParticipanteId(eventoId, participanteId)).thenReturn(Optional.empty());
+        UUID usuarioId = UUID.randomUUID();
+        when(epRepository.findByEventoIdAndUsuarioId(eventoId, usuarioId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> useCase.execute(eventoId, participanteId, UUID.randomUUID()))
+        assertThatThrownBy(() -> useCase.execute(eventoId, usuarioId, UUID.randomUUID()))
                 .isInstanceOf(EventoParticipanteNotFoundException.class);
     }
 
     @Test
     void deve_lancar_excecao_quando_categoria_nao_existe() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
         UUID categoriaId = UUID.randomUUID();
-        EventoParticipante ep = EventoParticipante.criar(eventoId, participanteId, false);
+        EventoParticipante ep = EventoParticipante.criar(eventoId, usuarioId, false);
 
-        when(epRepository.findByEventoIdAndParticipanteId(eventoId, participanteId)).thenReturn(Optional.of(ep));
+        when(epRepository.findByEventoIdAndUsuarioId(eventoId, usuarioId)).thenReturn(Optional.of(ep));
         when(categoriaRepository.existsById(categoriaId)).thenReturn(false);
 
-        assertThatThrownBy(() -> useCase.execute(eventoId, participanteId, categoriaId))
+        assertThatThrownBy(() -> useCase.execute(eventoId, usuarioId, categoriaId))
                 .isInstanceOf(CategoriaConsumoNotFoundException.class);
     }
 }

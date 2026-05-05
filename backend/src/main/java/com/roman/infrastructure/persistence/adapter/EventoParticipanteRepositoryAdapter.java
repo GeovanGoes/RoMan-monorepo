@@ -28,13 +28,12 @@ public class EventoParticipanteRepositoryAdapter implements EventoParticipanteRe
 
     @Override
     public EventoParticipante save(EventoParticipante ep) {
-        EventoParticipanteJpaEntity entity = toEntity(ep);
-        return toDomain(jpaRepository.save(entity));
+        return toDomain(jpaRepository.save(toEntity(ep)));
     }
 
     @Override
-    public Optional<EventoParticipante> findByEventoIdAndParticipanteId(UUID eventoId, UUID participanteId) {
-        return jpaRepository.findByEventoIdAndParticipanteId(eventoId, participanteId).map(this::toDomain);
+    public Optional<EventoParticipante> findByEventoIdAndUsuarioId(UUID eventoId, UUID usuarioId) {
+        return jpaRepository.findByEventoIdAndUsuarioId(eventoId, usuarioId).map(this::toDomain);
     }
 
     @Override
@@ -43,8 +42,8 @@ public class EventoParticipanteRepositoryAdapter implements EventoParticipanteRe
     }
 
     @Override
-    public boolean existsByEventoIdAndParticipanteId(UUID eventoId, UUID participanteId) {
-        return jpaRepository.existsByEventoIdAndParticipanteId(eventoId, participanteId);
+    public boolean existsByEventoIdAndUsuarioId(UUID eventoId, UUID usuarioId) {
+        return jpaRepository.existsByEventoIdAndUsuarioId(eventoId, usuarioId);
     }
 
     @Override
@@ -60,7 +59,7 @@ public class EventoParticipanteRepositoryAdapter implements EventoParticipanteRe
         return EventoParticipanteJpaEntity.builder()
                 .id(ep.getId())
                 .eventoId(ep.getEventoId())
-                .participanteId(ep.getParticipanteId())
+                .usuarioId(ep.getUsuarioId())
                 .menorDeIdade(ep.isMenorDeIdade())
                 .categoriasExcluidas(categorias)
                 .createdAt(ep.getCreatedAt())
@@ -72,7 +71,7 @@ public class EventoParticipanteRepositoryAdapter implements EventoParticipanteRe
                 .map(CategoriaConsumoJpaEntity::getId)
                 .collect(Collectors.toSet());
 
-        return new EventoParticipante(e.getId(), e.getEventoId(), e.getParticipanteId(),
+        return new EventoParticipante(e.getId(), e.getEventoId(), e.getUsuarioId(),
                 e.isMenorDeIdade(), categoriasIds, e.getCreatedAt());
     }
 }

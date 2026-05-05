@@ -11,6 +11,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -27,6 +29,7 @@ class EventoControllerTest {
     private MockMvc mockMvc;
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void deve_criar_evento_e_retornar_201() throws Exception {
         mockMvc.perform(post("/api/v1/eventos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -57,6 +60,7 @@ class EventoControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void deve_retornar_400_quando_datas_ausentes() throws Exception {
         mockMvc.perform(post("/api/v1/eventos")
                         .contentType(MediaType.APPLICATION_JSON)

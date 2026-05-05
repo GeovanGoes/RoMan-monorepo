@@ -1,14 +1,14 @@
 package com.roman.application.evento;
 
 import com.roman.domain.entity.Compra;
-import com.roman.domain.entity.Participante;
+import com.roman.domain.entity.Usuario;
 import com.roman.domain.exception.CategoriaConsumoNotFoundException;
 import com.roman.domain.exception.EventoNotFoundException;
 import com.roman.domain.exception.ParticipanteNotFoundException;
 import com.roman.domain.repository.CategoriaConsumoRepository;
 import com.roman.domain.repository.CompraRepository;
 import com.roman.domain.repository.EventoRepository;
-import com.roman.domain.repository.ParticipanteRepository;
+import com.roman.domain.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,16 +20,16 @@ public class AdicionarCompraUseCase {
 
     private final EventoRepository eventoRepository;
     private final CategoriaConsumoRepository categoriaRepository;
-    private final ParticipanteRepository participanteRepository;
+    private final UsuarioRepository usuarioRepository;
     private final CompraRepository compraRepository;
 
     public AdicionarCompraUseCase(EventoRepository eventoRepository,
                                   CategoriaConsumoRepository categoriaRepository,
-                                  ParticipanteRepository participanteRepository,
+                                  UsuarioRepository usuarioRepository,
                                   CompraRepository compraRepository) {
         this.eventoRepository = eventoRepository;
         this.categoriaRepository = categoriaRepository;
-        this.participanteRepository = participanteRepository;
+        this.usuarioRepository = usuarioRepository;
         this.compraRepository = compraRepository;
     }
 
@@ -42,8 +42,8 @@ public class AdicionarCompraUseCase {
             throw new CategoriaConsumoNotFoundException(categoriaId);
         }
         for (UUID pagadorId : pagadoresIds) {
-            participanteRepository.findById(pagadorId)
-                    .filter(Participante::isAtivo)
+            usuarioRepository.findById(pagadorId)
+                    .filter(Usuario::isAtivo)
                     .orElseThrow(() -> new ParticipanteNotFoundException(pagadorId));
         }
         return compraRepository.save(Compra.criar(descricao, valor, eventoId, categoriaId, pagadoresIds));

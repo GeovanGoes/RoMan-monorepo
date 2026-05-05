@@ -11,6 +11,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -27,6 +29,7 @@ class ParticipanteControllerTest {
     private MockMvc mockMvc;
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void deve_criar_participante_e_retornar_201() throws Exception {
         mockMvc.perform(post("/api/v1/participantes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -40,6 +43,7 @@ class ParticipanteControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void deve_retornar_409_quando_username_duplicado() throws Exception {
         String body = """
                 {"nome": "Maria", "username": "maria_dup"}
@@ -53,6 +57,7 @@ class ParticipanteControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void deve_retornar_400_quando_campos_invalidos() throws Exception {
         mockMvc.perform(post("/api/v1/participantes")
                         .contentType(MediaType.APPLICATION_JSON)

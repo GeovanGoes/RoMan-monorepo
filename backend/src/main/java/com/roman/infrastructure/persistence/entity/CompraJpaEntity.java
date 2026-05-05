@@ -38,10 +38,10 @@ public class CompraJpaEntity {
     @JoinTable(
             name = "compra_pagador",
             joinColumns = @JoinColumn(name = "compra_id"),
-            inverseJoinColumns = @JoinColumn(name = "participante_id")
+            inverseJoinColumns = @JoinColumn(name = "usuario_id")
     )
     @Builder.Default
-    private Set<ParticipanteJpaEntity> pagadores = new HashSet<>();
+    private Set<UsuarioJpaEntity> pagadores = new HashSet<>();
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

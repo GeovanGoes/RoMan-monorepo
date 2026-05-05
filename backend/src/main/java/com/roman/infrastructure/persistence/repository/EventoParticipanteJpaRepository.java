@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface EventoParticipanteJpaRepository extends JpaRepository<EventoParticipanteJpaEntity, UUID> {
-    Optional<EventoParticipanteJpaEntity> findByEventoIdAndParticipanteId(UUID eventoId, UUID participanteId);
+    Optional<EventoParticipanteJpaEntity> findByEventoIdAndUsuarioId(UUID eventoId, UUID usuarioId);
     List<EventoParticipanteJpaEntity> findByEventoId(UUID eventoId);
-    boolean existsByEventoIdAndParticipanteId(UUID eventoId, UUID participanteId);
+    boolean existsByEventoIdAndUsuarioId(UUID eventoId, UUID usuarioId);
 }

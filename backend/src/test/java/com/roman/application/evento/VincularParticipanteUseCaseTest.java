@@ -1,12 +1,13 @@
 package com.roman.application.evento;
 
 import com.roman.domain.entity.EventoParticipante;
+import com.roman.domain.entity.Usuario;
 import com.roman.domain.exception.EventoNotFoundException;
 import com.roman.domain.exception.ParticipanteJaVinculadoException;
 import com.roman.domain.exception.ParticipanteNotFoundException;
 import com.roman.domain.repository.EventoParticipanteRepository;
 import com.roman.domain.repository.EventoRepository;
-import com.roman.domain.repository.ParticipanteRepository;
+import com.roman.domain.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,40 +25,40 @@ import static org.mockito.Mockito.*;
 class VincularParticipanteUseCaseTest {
 
     @Mock private EventoRepository eventoRepository;
-    @Mock private ParticipanteRepository participanteRepository;
+    @Mock private UsuarioRepository usuarioRepository;
     @Mock private EventoParticipanteRepository eventoParticipanteRepository;
 
     @InjectMocks
     private VincularParticipanteUseCase useCase;
 
     @Test
-    void deve_vincular_participante_ao_evento() {
+    void deve_vincular_usuario_ao_evento() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
-        when(participanteRepository.findById(participanteId)).thenReturn(
-                java.util.Optional.of(com.roman.domain.entity.Participante.criar("João", "joao")));
-        when(eventoParticipanteRepository.existsByEventoIdAndParticipanteId(eventoId, participanteId)).thenReturn(false);
+        when(usuarioRepository.findById(usuarioId)).thenReturn(
+                java.util.Optional.of(Usuario.criarConvidado("João", "joao")));
+        when(eventoParticipanteRepository.existsByEventoIdAndUsuarioId(eventoId, usuarioId)).thenReturn(false);
         when(eventoParticipanteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        EventoParticipante result = useCase.execute(eventoId, participanteId, false);
+        EventoParticipante result = useCase.execute(eventoId, usuarioId, false);
 
         assertThat(result.getEventoId()).isEqualTo(eventoId);
-        assertThat(result.getParticipanteId()).isEqualTo(participanteId);
+        assertThat(result.getUsuarioId()).isEqualTo(usuarioId);
         assertThat(result.isMenorDeIdade()).isFalse();
     }
 
     @Test
-    void deve_vincular_participante_menor_de_idade() {
+    void deve_vincular_usuario_menor_de_idade() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
-        when(participanteRepository.findById(participanteId)).thenReturn(
-                java.util.Optional.of(com.roman.domain.entity.Participante.criar("Maria", "maria")));
-        when(eventoParticipanteRepository.existsByEventoIdAndParticipanteId(eventoId, participanteId)).thenReturn(false);
+        when(usuarioRepository.findById(usuarioId)).thenReturn(
+                java.util.Optional.of(Usuario.criarConvidado("Maria", "maria")));
+        when(eventoParticipanteRepository.existsByEventoIdAndUsuarioId(eventoId, usuarioId)).thenReturn(false);
         when(eventoParticipanteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        EventoParticipante result = useCase.execute(eventoId, participanteId, true);
+        EventoParticipante result = useCase.execute(eventoId, usuarioId, true);
 
         assertThat(result.isMenorDeIdade()).isTrue();
     }
@@ -72,26 +73,26 @@ class VincularParticipanteUseCaseTest {
     }
 
     @Test
-    void deve_lancar_excecao_quando_participante_nao_existe() {
+    void deve_lancar_excecao_quando_usuario_nao_existe() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
-        when(participanteRepository.findById(participanteId)).thenReturn(java.util.Optional.empty());
+        when(usuarioRepository.findById(usuarioId)).thenReturn(java.util.Optional.empty());
 
-        assertThatThrownBy(() -> useCase.execute(eventoId, participanteId, false))
+        assertThatThrownBy(() -> useCase.execute(eventoId, usuarioId, false))
                 .isInstanceOf(ParticipanteNotFoundException.class);
     }
 
     @Test
-    void deve_lancar_excecao_quando_participante_ja_vinculado() {
+    void deve_lancar_excecao_quando_usuario_ja_vinculado() {
         UUID eventoId = UUID.randomUUID();
-        UUID participanteId = UUID.randomUUID();
+        UUID usuarioId = UUID.randomUUID();
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
-        when(participanteRepository.findById(participanteId)).thenReturn(
-                java.util.Optional.of(com.roman.domain.entity.Participante.criar("João", "joao")));
-        when(eventoParticipanteRepository.existsByEventoIdAndParticipanteId(eventoId, participanteId)).thenReturn(true);
+        when(usuarioRepository.findById(usuarioId)).thenReturn(
+                java.util.Optional.of(Usuario.criarConvidado("João", "joao")));
+        when(eventoParticipanteRepository.existsByEventoIdAndUsuarioId(eventoId, usuarioId)).thenReturn(true);
 
-        assertThatThrownBy(() -> useCase.execute(eventoId, participanteId, false))
+        assertThatThrownBy(() -> useCase.execute(eventoId, usuarioId, false))
                 .isInstanceOf(ParticipanteJaVinculadoException.class);
     }
 }

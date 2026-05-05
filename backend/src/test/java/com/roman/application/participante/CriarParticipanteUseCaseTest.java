@@ -1,8 +1,8 @@
 package com.roman.application.participante;
 
-import com.roman.domain.entity.Participante;
+import com.roman.domain.entity.Usuario;
 import com.roman.domain.exception.UsernameJaExisteException;
-import com.roman.domain.repository.ParticipanteRepository;
+import com.roman.domain.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,24 +18,26 @@ import static org.mockito.Mockito.*;
 class CriarParticipanteUseCaseTest {
 
     @Mock
-    private ParticipanteRepository repository;
+    private UsuarioRepository repository;
 
     @InjectMocks
     private CriarParticipanteUseCase useCase;
 
     @Test
-    void deve_criar_participante_com_sucesso() {
+    void deve_criar_convidado_com_sucesso() {
         when(repository.existsByUsernameAtivo("joao123")).thenReturn(false);
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        Participante result = useCase.execute("João Silva", "joao123");
+        Usuario result = useCase.execute("João Silva", "joao123");
 
         assertThat(result.getId()).isNotNull();
         assertThat(result.getNome()).isEqualTo("João Silva");
         assertThat(result.getUsername()).isEqualTo("joao123");
+        assertThat(result.getSenhaHash()).isNull();
+        assertThat(result.getEmail()).isNull();
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getDeletedAt()).isNull();
-        verify(repository).save(any(Participante.class));
+        verify(repository).save(any(Usuario.class));
     }
 
     @Test

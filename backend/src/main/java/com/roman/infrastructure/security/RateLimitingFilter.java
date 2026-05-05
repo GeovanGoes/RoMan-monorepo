@@ -1,30 +1,26 @@
 package com.roman.infrastructure.security;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class RateLimitingFilter implements Filter {
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private static final int CAPACITY = 10;
+    private static final long REFILL_INTERVAL_MS = 60_000L;
 
-    private Bucket getBucket(String key) {
-        return buckets.computeIfAbsent(key, k ->
-                Bucket.builder()
-                        .addLimit(Bandwidth.builder()
-                                .capacity(10)
-                                .refillIntervally(10, Duration.ofMinutes(1))
-                                .build())
-                        .build());
+    private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
+
+    private boolean tryConsume(String key) {
+        TokenBucket bucket = buckets.computeIfAbsent(key, k -> new TokenBucket(CAPACITY, REFILL_INTERVAL_MS));
+        return bucket.tryConsume();
     }
 
     @Override
@@ -35,8 +31,7 @@ public class RateLimitingFilter implements Filter {
 
         if (uri.startsWith("/api/v1/auth/")) {
             String ip = getClientIp(httpRequest);
-            Bucket bucket = getBucket(ip);
-            if (!bucket.tryConsume(1)) {
+            if (!tryConsume(ip)) {
                 HttpServletResponse httpResponse = (HttpServletResponse) response;
                 httpResponse.setStatus(429);
                 httpResponse.setContentType("application/json");
@@ -52,5 +47,41 @@ public class RateLimitingFilter implements Filter {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isEmpty()) return xff.split(",")[0].trim();
         return request.getRemoteAddr();
+    }
+
+    private static final class TokenBucket {
+        private final int capacity;
+        private final long refillIntervalMs;
+        private final AtomicInteger tokens;
+        private volatile long lastRefillTime;
+
+        TokenBucket(int capacity, long refillIntervalMs) {
+            this.capacity = capacity;
+            this.refillIntervalMs = refillIntervalMs;
+            this.tokens = new AtomicInteger(capacity);
+            this.lastRefillTime = System.currentTimeMillis();
+        }
+
+        boolean tryConsume() {
+            refillIfNeeded();
+            int current;
+            do {
+                current = tokens.get();
+                if (current <= 0) return false;
+            } while (!tokens.compareAndSet(current, current - 1));
+            return true;
+        }
+
+        private void refillIfNeeded() {
+            long now = System.currentTimeMillis();
+            if (now - lastRefillTime >= refillIntervalMs) {
+                synchronized (this) {
+                    if (now - lastRefillTime >= refillIntervalMs) {
+                        tokens.set(capacity);
+                        lastRefillTime = now;
+                    }
+                }
+            }
+        }
     }
 }

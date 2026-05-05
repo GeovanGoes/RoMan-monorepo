@@ -2,12 +2,12 @@ package com.roman.application.evento;
 
 import com.roman.domain.entity.Compra;
 import com.roman.domain.entity.EventoParticipante;
-import com.roman.domain.entity.Participante;
+import com.roman.domain.entity.Usuario;
 import com.roman.domain.exception.EventoNotFoundException;
 import com.roman.domain.repository.CompraRepository;
 import com.roman.domain.repository.EventoParticipanteRepository;
 import com.roman.domain.repository.EventoRepository;
-import com.roman.domain.repository.ParticipanteRepository;
+import com.roman.domain.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,7 +30,7 @@ class CalcularRateioUseCaseTest {
     @Mock private EventoRepository eventoRepository;
     @Mock private EventoParticipanteRepository eventoParticipanteRepository;
     @Mock private CompraRepository compraRepository;
-    @Mock private ParticipanteRepository participanteRepository;
+    @Mock private UsuarioRepository usuarioRepository;
 
     @InjectMocks
     private CalcularRateioUseCase useCase;
@@ -47,13 +47,13 @@ class CalcularRateioUseCaseTest {
     @Test
     void deve_retornar_saldo_zero_quando_nao_ha_compras() {
         UUID eventoId = UUID.randomUUID();
-        UUID p1Id = UUID.randomUUID();
+        UUID u1Id = UUID.randomUUID();
 
-        EventoParticipante ep1 = EventoParticipante.criar(eventoId, p1Id, false);
+        EventoParticipante ep1 = EventoParticipante.criar(eventoId, u1Id, false);
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
         when(eventoParticipanteRepository.findByEventoId(eventoId)).thenReturn(List.of(ep1));
         when(compraRepository.findByEventoId(eventoId)).thenReturn(List.of());
-        when(participanteRepository.findById(p1Id)).thenReturn(Optional.of(Participante.criar("Ana", "ana")));
+        when(usuarioRepository.findById(u1Id)).thenReturn(Optional.of(Usuario.criarConvidado("Ana", "ana")));
 
         List<RateioItem> resultado = useCase.execute(eventoId);
 
@@ -67,24 +67,24 @@ class CalcularRateioUseCaseTest {
     void menor_de_idade_nao_gera_debito() {
         UUID eventoId = UUID.randomUUID();
         UUID categoriaId = UUID.randomUUID();
-        UUID adultoPid = UUID.randomUUID();
-        UUID menorPid = UUID.randomUUID();
+        UUID adultoId = UUID.randomUUID();
+        UUID menorId = UUID.randomUUID();
         UUID pagadorId = UUID.randomUUID();
 
-        EventoParticipante adulto = EventoParticipante.criar(eventoId, adultoPid, false);
-        EventoParticipante menor = EventoParticipante.criar(eventoId, menorPid, true);
+        EventoParticipante adulto = EventoParticipante.criar(eventoId, adultoId, false);
+        EventoParticipante menor = EventoParticipante.criar(eventoId, menorId, true);
         Compra compra = Compra.criar("Bebida", new BigDecimal("100.00"), eventoId, categoriaId, Set.of(pagadorId));
 
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
         when(eventoParticipanteRepository.findByEventoId(eventoId)).thenReturn(List.of(adulto, menor));
         when(compraRepository.findByEventoId(eventoId)).thenReturn(List.of(compra));
-        when(participanteRepository.findById(adultoPid)).thenReturn(Optional.of(Participante.criar("Bruno", "bruno")));
-        when(participanteRepository.findById(menorPid)).thenReturn(Optional.of(Participante.criar("Carlos", "carlos")));
+        when(usuarioRepository.findById(adultoId)).thenReturn(Optional.of(Usuario.criarConvidado("Bruno", "bruno")));
+        when(usuarioRepository.findById(menorId)).thenReturn(Optional.of(Usuario.criarConvidado("Carlos", "carlos")));
 
         List<RateioItem> resultado = useCase.execute(eventoId);
 
-        RateioItem itemAdulto = resultado.stream().filter(r -> r.participanteId().equals(adultoPid)).findFirst().orElseThrow();
-        RateioItem itemMenor = resultado.stream().filter(r -> r.participanteId().equals(menorPid)).findFirst().orElseThrow();
+        RateioItem itemAdulto = resultado.stream().filter(r -> r.usuarioId().equals(adultoId)).findFirst().orElseThrow();
+        RateioItem itemMenor = resultado.stream().filter(r -> r.usuarioId().equals(menorId)).findFirst().orElseThrow();
 
         assertThat(itemAdulto.totalDevido()).isEqualByComparingTo("100.00");
         assertThat(itemMenor.totalDevido()).isEqualByComparingTo(BigDecimal.ZERO);
@@ -94,12 +94,12 @@ class CalcularRateioUseCaseTest {
     void participante_com_exclusao_de_categoria_nao_paga_aquela_compra() {
         UUID eventoId = UUID.randomUUID();
         UUID categoriaAlcool = UUID.randomUUID();
-        UUID p1Id = UUID.randomUUID();
-        UUID p2Id = UUID.randomUUID();
+        UUID u1Id = UUID.randomUUID();
+        UUID u2Id = UUID.randomUUID();
         UUID pagadorId = UUID.randomUUID();
 
-        EventoParticipante ep1 = EventoParticipante.criar(eventoId, p1Id, false);
-        EventoParticipante ep2 = EventoParticipante.criar(eventoId, p2Id, false);
+        EventoParticipante ep1 = EventoParticipante.criar(eventoId, u1Id, false);
+        EventoParticipante ep2 = EventoParticipante.criar(eventoId, u2Id, false);
         ep2.adicionarExclusaoCategoria(categoriaAlcool);
 
         Compra compra = Compra.criar("Cerveja", new BigDecimal("60.00"), eventoId, categoriaAlcool, Set.of(pagadorId));
@@ -107,13 +107,13 @@ class CalcularRateioUseCaseTest {
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
         when(eventoParticipanteRepository.findByEventoId(eventoId)).thenReturn(List.of(ep1, ep2));
         when(compraRepository.findByEventoId(eventoId)).thenReturn(List.of(compra));
-        when(participanteRepository.findById(p1Id)).thenReturn(Optional.of(Participante.criar("Ana", "ana")));
-        when(participanteRepository.findById(p2Id)).thenReturn(Optional.of(Participante.criar("Bia", "bia")));
+        when(usuarioRepository.findById(u1Id)).thenReturn(Optional.of(Usuario.criarConvidado("Ana", "ana")));
+        when(usuarioRepository.findById(u2Id)).thenReturn(Optional.of(Usuario.criarConvidado("Bia", "bia")));
 
         List<RateioItem> resultado = useCase.execute(eventoId);
 
-        RateioItem item1 = resultado.stream().filter(r -> r.participanteId().equals(p1Id)).findFirst().orElseThrow();
-        RateioItem item2 = resultado.stream().filter(r -> r.participanteId().equals(p2Id)).findFirst().orElseThrow();
+        RateioItem item1 = resultado.stream().filter(r -> r.usuarioId().equals(u1Id)).findFirst().orElseThrow();
+        RateioItem item2 = resultado.stream().filter(r -> r.usuarioId().equals(u2Id)).findFirst().orElseThrow();
 
         assertThat(item1.totalDevido()).isEqualByComparingTo("60.00");
         assertThat(item2.totalDevido()).isEqualByComparingTo(BigDecimal.ZERO);
@@ -123,53 +123,51 @@ class CalcularRateioUseCaseTest {
     void pagador_que_pagou_mais_do_que_devia_tem_saldo_positivo() {
         UUID eventoId = UUID.randomUUID();
         UUID categoriaId = UUID.randomUUID();
-        UUID p1Id = UUID.randomUUID();
-        UUID p2Id = UUID.randomUUID();
+        UUID u1Id = UUID.randomUUID();
+        UUID u2Id = UUID.randomUUID();
 
-        EventoParticipante ep1 = EventoParticipante.criar(eventoId, p1Id, false);
-        EventoParticipante ep2 = EventoParticipante.criar(eventoId, p2Id, false);
+        EventoParticipante ep1 = EventoParticipante.criar(eventoId, u1Id, false);
+        EventoParticipante ep2 = EventoParticipante.criar(eventoId, u2Id, false);
 
-        // p1 pagou R$100 mas só deve R$50 (dividido entre 2)
-        Compra compra = Compra.criar("Compra", new BigDecimal("100.00"), eventoId, categoriaId, Set.of(p1Id));
+        Compra compra = Compra.criar("Compra", new BigDecimal("100.00"), eventoId, categoriaId, Set.of(u1Id));
 
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
         when(eventoParticipanteRepository.findByEventoId(eventoId)).thenReturn(List.of(ep1, ep2));
         when(compraRepository.findByEventoId(eventoId)).thenReturn(List.of(compra));
-        when(participanteRepository.findById(p1Id)).thenReturn(Optional.of(Participante.criar("Ana", "ana")));
-        when(participanteRepository.findById(p2Id)).thenReturn(Optional.of(Participante.criar("Bruno", "bruno")));
+        when(usuarioRepository.findById(u1Id)).thenReturn(Optional.of(Usuario.criarConvidado("Ana", "ana")));
+        when(usuarioRepository.findById(u2Id)).thenReturn(Optional.of(Usuario.criarConvidado("Bruno", "bruno")));
 
         List<RateioItem> resultado = useCase.execute(eventoId);
 
-        RateioItem itemP1 = resultado.stream().filter(r -> r.participanteId().equals(p1Id)).findFirst().orElseThrow();
-        RateioItem itemP2 = resultado.stream().filter(r -> r.participanteId().equals(p2Id)).findFirst().orElseThrow();
+        RateioItem itemU1 = resultado.stream().filter(r -> r.usuarioId().equals(u1Id)).findFirst().orElseThrow();
+        RateioItem itemU2 = resultado.stream().filter(r -> r.usuarioId().equals(u2Id)).findFirst().orElseThrow();
 
-        assertThat(itemP1.totalPago()).isEqualByComparingTo("100.00");
-        assertThat(itemP1.totalDevido()).isEqualByComparingTo("50.00");
-        assertThat(itemP1.saldo()).isEqualByComparingTo("50.00"); // a receber
+        assertThat(itemU1.totalPago()).isEqualByComparingTo("100.00");
+        assertThat(itemU1.totalDevido()).isEqualByComparingTo("50.00");
+        assertThat(itemU1.saldo()).isEqualByComparingTo("50.00");
 
-        assertThat(itemP2.totalPago()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(itemP2.totalDevido()).isEqualByComparingTo("50.00");
-        assertThat(itemP2.saldo()).isEqualByComparingTo("-50.00"); // deve pagar
+        assertThat(itemU2.totalPago()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(itemU2.totalDevido()).isEqualByComparingTo("50.00");
+        assertThat(itemU2.saldo()).isEqualByComparingTo("-50.00");
     }
 
     @Test
     void dois_pagadores_dividem_credito_igualmente() {
         UUID eventoId = UUID.randomUUID();
         UUID categoriaId = UUID.randomUUID();
-        UUID p1Id = UUID.randomUUID();
-        UUID p2Id = UUID.randomUUID();
+        UUID u1Id = UUID.randomUUID();
+        UUID u2Id = UUID.randomUUID();
 
-        EventoParticipante ep1 = EventoParticipante.criar(eventoId, p1Id, false);
-        EventoParticipante ep2 = EventoParticipante.criar(eventoId, p2Id, false);
+        EventoParticipante ep1 = EventoParticipante.criar(eventoId, u1Id, false);
+        EventoParticipante ep2 = EventoParticipante.criar(eventoId, u2Id, false);
 
-        // p1 e p2 pagaram juntos R$100
-        Compra compra = Compra.criar("Compra", new BigDecimal("100.00"), eventoId, categoriaId, Set.of(p1Id, p2Id));
+        Compra compra = Compra.criar("Compra", new BigDecimal("100.00"), eventoId, categoriaId, Set.of(u1Id, u2Id));
 
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
         when(eventoParticipanteRepository.findByEventoId(eventoId)).thenReturn(List.of(ep1, ep2));
         when(compraRepository.findByEventoId(eventoId)).thenReturn(List.of(compra));
-        when(participanteRepository.findById(p1Id)).thenReturn(Optional.of(Participante.criar("Ana", "ana")));
-        when(participanteRepository.findById(p2Id)).thenReturn(Optional.of(Participante.criar("Bruno", "bruno")));
+        when(usuarioRepository.findById(u1Id)).thenReturn(Optional.of(Usuario.criarConvidado("Ana", "ana")));
+        when(usuarioRepository.findById(u2Id)).thenReturn(Optional.of(Usuario.criarConvidado("Bruno", "bruno")));
 
         List<RateioItem> resultado = useCase.execute(eventoId);
 
@@ -183,17 +181,17 @@ class CalcularRateioUseCaseTest {
     @Test
     void nome_participante_e_incluido_no_resultado() {
         UUID eventoId = UUID.randomUUID();
-        UUID pid = UUID.randomUUID();
+        UUID uid = UUID.randomUUID();
 
-        EventoParticipante ep = EventoParticipante.criar(eventoId, pid, false);
+        EventoParticipante ep = EventoParticipante.criar(eventoId, uid, false);
         when(eventoRepository.existsById(eventoId)).thenReturn(true);
         when(eventoParticipanteRepository.findByEventoId(eventoId)).thenReturn(List.of(ep));
         when(compraRepository.findByEventoId(eventoId)).thenReturn(List.of());
-        when(participanteRepository.findById(pid)).thenReturn(Optional.of(Participante.criar("Maria", "maria")));
+        when(usuarioRepository.findById(uid)).thenReturn(Optional.of(Usuario.criarConvidado("Maria", "maria")));
 
         List<RateioItem> resultado = useCase.execute(eventoId);
 
         assertThat(resultado.get(0).nomeParticipante()).isEqualTo("Maria");
-        assertThat(resultado.get(0).participanteId()).isEqualTo(pid);
+        assertThat(resultado.get(0).usuarioId()).isEqualTo(uid);
     }
 }

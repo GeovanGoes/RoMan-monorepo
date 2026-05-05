@@ -6,13 +6,16 @@ import com.roman.interfaces.dto.request.AtualizarEventoRequest;
 import com.roman.interfaces.dto.request.CriarEventoRequest;
 import com.roman.interfaces.dto.request.VincularParticipanteRequest;
 import com.roman.interfaces.dto.response.CompraResponse;
+import com.roman.interfaces.dto.response.EventoParticipanteDetalheResponse;
 import com.roman.interfaces.dto.response.EventoParticipanteResponse;
 import com.roman.interfaces.dto.response.EventoResponse;
 import com.roman.interfaces.dto.response.RateioItemResponse;
+import com.roman.infrastructure.security.SpringUserDetails;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -104,8 +107,20 @@ public class EventoController {
     // --- Participantes no evento ---
 
     @GetMapping("/{id}/participantes")
-    public List<EventoParticipanteResponse> listarParticipantes(@PathVariable UUID id) {
-        return listarParticipantesUseCase.execute(id).stream().map(EventoParticipanteResponse::from).toList();
+    public List<EventoParticipanteDetalheResponse> listarParticipantes(@PathVariable UUID id) {
+        return listarParticipantesUseCase.execute(id).stream()
+                .map(EventoParticipanteDetalheResponse::from).toList();
+    }
+
+    @PostMapping("/{id}/participantes/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EventoParticipanteResponse> vincularMe(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal SpringUserDetails userDetails,
+            @RequestBody(required = false) VincularParticipanteRequest request) {
+        boolean menor = request != null && request.menorDeIdade();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(EventoParticipanteResponse.from(vincularUseCase.execute(id, userDetails.getId(), menor)));
     }
 
     @PostMapping("/{id}/participantes/{participanteId}")

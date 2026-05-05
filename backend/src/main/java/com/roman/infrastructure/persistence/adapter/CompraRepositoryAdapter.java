@@ -3,9 +3,9 @@ package com.roman.infrastructure.persistence.adapter;
 import com.roman.domain.entity.Compra;
 import com.roman.domain.repository.CompraRepository;
 import com.roman.infrastructure.persistence.entity.CompraJpaEntity;
-import com.roman.infrastructure.persistence.entity.ParticipanteJpaEntity;
+import com.roman.infrastructure.persistence.entity.UsuarioJpaEntity;
 import com.roman.infrastructure.persistence.repository.CompraJpaRepository;
-import com.roman.infrastructure.persistence.repository.ParticipanteJpaRepository;
+import com.roman.infrastructure.persistence.repository.UsuarioJpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 public class CompraRepositoryAdapter implements CompraRepository {
 
     private final CompraJpaRepository jpaRepository;
-    private final ParticipanteJpaRepository participanteJpaRepository;
+    private final UsuarioJpaRepository usuarioJpaRepository;
 
     public CompraRepositoryAdapter(CompraJpaRepository jpaRepository,
-                                   ParticipanteJpaRepository participanteJpaRepository) {
+                                   UsuarioJpaRepository usuarioJpaRepository) {
         this.jpaRepository = jpaRepository;
-        this.participanteJpaRepository = participanteJpaRepository;
+        this.usuarioJpaRepository = usuarioJpaRepository;
     }
 
     @Override
@@ -52,8 +52,8 @@ public class CompraRepositoryAdapter implements CompraRepository {
     }
 
     private CompraJpaEntity toEntity(Compra c) {
-        Set<ParticipanteJpaEntity> pagadores = c.getPagadoresIds().stream()
-                .map(id -> participanteJpaRepository.getReferenceById(id))
+        Set<UsuarioJpaEntity> pagadores = c.getPagadoresIds().stream()
+                .map(id -> usuarioJpaRepository.getReferenceById(id))
                 .collect(Collectors.toSet());
 
         return CompraJpaEntity.builder()
@@ -70,7 +70,7 @@ public class CompraRepositoryAdapter implements CompraRepository {
 
     private Compra toDomain(CompraJpaEntity e) {
         Set<UUID> pagadoresIds = e.getPagadores().stream()
-                .map(ParticipanteJpaEntity::getId)
+                .map(UsuarioJpaEntity::getId)
                 .collect(Collectors.toSet());
 
         return new Compra(e.getId(), e.getDescricao(), e.getValor(), e.getEventoId(),

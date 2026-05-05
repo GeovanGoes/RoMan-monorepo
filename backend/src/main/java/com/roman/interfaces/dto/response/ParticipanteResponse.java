@@ -1,6 +1,6 @@
 package com.roman.interfaces.dto.response;
 
-import com.roman.domain.entity.Participante;
+import com.roman.domain.entity.Usuario;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -12,8 +12,8 @@ public record ParticipanteResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ParticipanteResponse from(Participante p) {
-        return new ParticipanteResponse(p.getId(), p.getNome(), p.getUsername(),
-                p.getCreatedAt(), p.getUpdatedAt());
+    public static ParticipanteResponse from(Usuario u) {
+        return new ParticipanteResponse(u.getId(), u.getNome(), u.getUsername(),
+                u.getCreatedAt(), u.getUpdatedAt());
     }
 }

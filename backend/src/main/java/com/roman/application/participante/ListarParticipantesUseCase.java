@@ -1,7 +1,7 @@
 package com.roman.application.participante;
 
-import com.roman.domain.entity.Participante;
-import com.roman.domain.repository.ParticipanteRepository;
+import com.roman.domain.entity.Usuario;
+import com.roman.domain.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,13 +9,13 @@ import java.util.List;
 @Service
 public class ListarParticipantesUseCase {
 
-    private final ParticipanteRepository repository;
+    private final UsuarioRepository repository;
 
-    public ListarParticipantesUseCase(ParticipanteRepository repository) {
+    public ListarParticipantesUseCase(UsuarioRepository repository) {
         this.repository = repository;
     }
 
-    public List<Participante> execute() {
+    public List<Usuario> execute() {
         return repository.findAllAtivos();
     }
 }

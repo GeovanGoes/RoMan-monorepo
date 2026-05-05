@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record RateioItemResponse(
-        UUID participanteId,
+        UUID usuarioId,
         String nomeParticipante,
         BigDecimal totalDevido,
         BigDecimal totalPago,
@@ -14,7 +14,7 @@ public record RateioItemResponse(
 ) {
     public static RateioItemResponse from(RateioItem item) {
         return new RateioItemResponse(
-                item.participanteId(),
+                item.usuarioId(),
                 item.nomeParticipante(),
                 item.totalDevido(),
                 item.totalPago(),
