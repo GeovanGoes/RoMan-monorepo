@@ -1,5 +1,5 @@
 import api from './api'
-import type { AdicionarCompraPayload, Compra, CriarEventoPayload, Evento, EventoParticipante, RateioItem } from '../types/evento'
+import type { AdicionarCompraPayload, Compra, CriarEventoPayload, Evento, EventoParticipante, RateioItem, TransferenciaSugerida } from '../types/evento'
 
 export const eventoService = {
   listar: () => api.get<Evento[]>('/eventos').then(r => r.data),
@@ -30,4 +30,6 @@ export const eventoService = {
 
   calcularRateio: (eventoId: string) =>
     api.get<RateioItem[]>(`/eventos/${eventoId}/rateio`).then(r => r.data),
+  simplificarDividas: (eventoId: string) =>
+    api.get<TransferenciaSugerida[]>(`/eventos/${eventoId}/rateio/simplificado`).then(r => r.data),
 }

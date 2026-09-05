@@ -10,6 +10,7 @@ import com.roman.interfaces.dto.response.EventoParticipanteDetalheResponse;
 import com.roman.interfaces.dto.response.EventoParticipanteResponse;
 import com.roman.interfaces.dto.response.EventoResponse;
 import com.roman.interfaces.dto.response.RateioItemResponse;
+import com.roman.interfaces.dto.response.TransferenciaSugeridaResponse;
 import com.roman.infrastructure.security.SpringUserDetails;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,7 @@ public class EventoController {
     private final ListarComprasUseCase listarComprasUseCase;
     private final RemoverCompraUseCase removerCompraUseCase;
     private final CalcularRateioUseCase calcularRateioUseCase;
+    private final SimplificarDividasUseCase simplificarDividasUseCase;
 
     public EventoController(CriarEventoUseCase criarUseCase,
                             AtualizarEventoUseCase atualizarUseCase,
@@ -53,7 +55,8 @@ public class EventoController {
                             AdicionarCompraUseCase adicionarCompraUseCase,
                             ListarComprasUseCase listarComprasUseCase,
                             RemoverCompraUseCase removerCompraUseCase,
-                            CalcularRateioUseCase calcularRateioUseCase) {
+                            CalcularRateioUseCase calcularRateioUseCase,
+                            SimplificarDividasUseCase simplificarDividasUseCase) {
         this.criarUseCase = criarUseCase;
         this.atualizarUseCase = atualizarUseCase;
         this.buscarUseCase = buscarUseCase;
@@ -68,6 +71,7 @@ public class EventoController {
         this.listarComprasUseCase = listarComprasUseCase;
         this.removerCompraUseCase = removerCompraUseCase;
         this.calcularRateioUseCase = calcularRateioUseCase;
+        this.simplificarDividasUseCase = simplificarDividasUseCase;
     }
 
     // --- Evento CRUD ---
@@ -188,5 +192,10 @@ public class EventoController {
     @GetMapping("/{id}/rateio")
     public List<RateioItemResponse> calcularRateio(@PathVariable UUID id) {
         return calcularRateioUseCase.execute(id).stream().map(RateioItemResponse::from).toList();
+    }
+
+    @GetMapping("/{id}/rateio/simplificado")
+    public List<TransferenciaSugeridaResponse> simplificarDividas(@PathVariable UUID id) {
+        return simplificarDividasUseCase.execute(id).stream().map(TransferenciaSugeridaResponse::from).toList();
     }
 }
