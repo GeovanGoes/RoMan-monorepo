@@ -9,8 +9,8 @@ Aplicação web para gestão de rolês (eventos e viagens em grupo) com divisão
 ### Back-end
 | Tecnologia | Versão | Finalidade |
 |------------|--------|------------|
-| Java | 21 (LTS) | Linguagem principal |
-| Spring Boot | 3.3.x (LTS) | Framework de aplicação |
+| Java | 25 (LTS) | Linguagem principal |
+| Spring Boot | 4.1.x | Framework de aplicação |
 | PostgreSQL | 16 | Banco de dados relacional |
 | Spring Data JPA + Hibernate | — | ORM e acesso a dados |
 | Maven | 3.9.x | Gerenciamento de dependências e build |

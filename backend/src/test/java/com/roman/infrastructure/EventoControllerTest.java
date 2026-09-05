@@ -3,7 +3,7 @@ package com.roman.infrastructure;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
@@ -157,7 +157,7 @@ class EventoControllerTest {
     private void vincularParticipante(String eventoId, String participanteId) throws Exception {
         mockMvc.perform(post("/api/v1/eventos/" + eventoId + "/participantes/" + participanteId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{\"menorDeIdade\": false}"))
                 .andExpect(status().isCreated());
     }
 
