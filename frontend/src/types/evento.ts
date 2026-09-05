@@ -50,9 +50,17 @@ export interface AdicionarCompraPayload {
 }
 
 export interface RateioItem {
-  participanteId: string
+  usuarioId: string
   nomeParticipante: string
   totalDevido: number
   totalPago: number
   saldo: number
+}
+
+export interface TransferenciaSugerida {
+  deId: string
+  nomeDe: string
+  paraId: string
+  nomePara: string
+  valor: number
 }

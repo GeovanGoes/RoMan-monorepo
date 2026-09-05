@@ -7,7 +7,7 @@ import { eventoService } from '../../services/eventoService'
 import { participanteService } from '../../services/participanteService'
 import { categoriaService } from '../../services/categoriaService'
 import { useAuth } from '../../contexts/AuthContext'
-import type { Evento, EventoParticipante, CategoriaExcluida, Compra, AdicionarCompraPayload, RateioItem } from '../../types/evento'
+import type { Evento, EventoParticipante, CategoriaExcluida, Compra, AdicionarCompraPayload, RateioItem, TransferenciaSugerida } from '../../types/evento'
 import type { Participante } from '../../types/participante'
 import type { CategoriaConsumo } from '../../types/categoria'
 
@@ -45,6 +45,7 @@ export function EventoDetailPage() {
   const [compraForm, setCompraForm] = useState<AdicionarCompraPayload>({ descricao: '', valor: 0, categoriaId: '', pagadoresIds: [] })
 
   const [rateio, setRateio] = useState<RateioItem[] | null>(null)
+  const [transferencias, setTransferencias] = useState<TransferenciaSugerida[] | null>(null)
   const [rateioLoading, setRateioLoading] = useState(false)
 
   const carregar = useCallback(async () => {
@@ -104,6 +105,7 @@ export function EventoDetailPage() {
       }
       setParticipantesEvento(prev => [...prev, epEnriquecido])
       setRateio(null)
+      setTransferencias(null)
       setModalVincular(false)
     } catch {
       setVincularError('Erro ao vincular participante')
@@ -123,6 +125,7 @@ export function EventoDetailPage() {
     await eventoService.desvincularParticipante(id, usuarioId)
     setParticipantesEvento(prev => prev.filter(ep => ep.usuarioId !== usuarioId))
     setRateio(null)
+    setTransferencias(null)
   }
 
   const abrirGerenciar = (ep: EventoParticipante) => {
@@ -151,6 +154,7 @@ export function EventoDetailPage() {
         prev.map(p => p.id === ep.id ? { ...p, categoriasExcluidas: novasCats } : p)
       )
       setRateio(null)
+      setTransferencias(null)
       setGerenciar(null)
     } catch {
       setGerenciarError('Erro ao salvar exclusões')
@@ -175,19 +179,25 @@ export function EventoDetailPage() {
     setModalCompra(false)
     setCompraForm({ descricao: '', valor: 0, categoriaId: '', pagadoresIds: [] })
     setRateio(null)
+    setTransferencias(null)
   }
 
   const removerCompra = async (compraId: string) => {
     await eventoService.removerCompra(id, compraId)
     setCompras(prev => prev.filter(c => c.id !== compraId))
     setRateio(null)
+    setTransferencias(null)
   }
 
   const calcularRateio = async () => {
     setRateioLoading(true)
     try {
-      const resultado = await eventoService.calcularRateio(id)
-      setRateio(resultado)
+      const [resultadoRateio, resultadoTransferencias] = await Promise.all([
+        eventoService.calcularRateio(id),
+        eventoService.simplificarDividas(id),
+      ])
+      setRateio(resultadoRateio)
+      setTransferencias(resultadoTransferencias)
     } finally {
       setRateioLoading(false)
     }
@@ -265,7 +275,7 @@ export function EventoDetailPage() {
           <p className="text-sm text-gray-400">Nenhum participante vinculado.</p>
         ) : (
           <Table
-            keyExtractor={r => r.participanteId}
+            keyExtractor={r => r.usuarioId}
             rows={rateio}
             emptyMessage=""
             columns={[
@@ -281,6 +291,26 @@ export function EventoDetailPage() {
               },
             ]}
           />
+        )}
+
+        {transferencias !== null && (
+          <div className="mt-6">
+            <h3 className="text-md font-semibold text-gray-700 mb-3">Quem deve para quem</h3>
+            {transferencias.length === 0 ? (
+              <p className="text-sm text-gray-400">Nenhuma transferência necessária — contas já quitadas.</p>
+            ) : (
+              <Table
+                keyExtractor={t => `${t.deId}-${t.paraId}`}
+                rows={transferencias}
+                emptyMessage=""
+                columns={[
+                  { header: 'De', render: t => t.nomeDe },
+                  { header: 'Para', render: t => t.nomePara },
+                  { header: 'Valor', render: t => `R$ ${t.valor.toFixed(2)}` },
+                ]}
+              />
+            )}
+          </div>
         )}
       </section>
 
