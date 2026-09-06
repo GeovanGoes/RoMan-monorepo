@@ -32,6 +32,12 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+logging:
+  pattern:
+    # Injeta o correlation ID (MDC) em toda linha de log — mesmo mecanismo usado pelo
+    # Micrometer Tracing pra traceId/spanId, mas funciona com qualquer chave de MDC.
+    correlation: "[%X{correlationId:-}] "
+
 app:
   jwt:
     secret: ${JWT_SECRET:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
