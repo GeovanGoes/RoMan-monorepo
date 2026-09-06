@@ -69,8 +69,8 @@ export function EventoDetailPage() {
   useEffect(() => { carregar() }, [carregar])
 
   if (!id) return null
-  if (loading) return <p className="p-6 text-gray-500">Carregando...</p>
-  if (!evento) return <p className="p-6 text-red-600">Evento não encontrado.</p>
+  if (loading) return <p className="p-4 sm:p-6 text-gray-500">Carregando...</p>
+  if (!evento) return <p className="p-4 sm:p-6 text-red-600">Evento não encontrado.</p>
 
   const participantesVinculadosIds = new Set(participantesEvento.map(ep => ep.usuarioId))
   const disponiveis = todosParticipantes.filter(p => !participantesVinculadosIds.has(p.id))
@@ -204,7 +204,7 @@ export function EventoDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8">
       <div>
         <Link to="/eventos" className="text-sm text-indigo-600 hover:underline">&larr; Voltar</Link>
         <h1 className="text-2xl font-bold text-gray-800 mt-2">{evento.nome}</h1>
@@ -213,7 +213,7 @@ export function EventoDetailPage() {
 
       {/* Participantes */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h2 className="text-lg font-semibold text-gray-700">Participantes</h2>
           {isAdmin && disponiveis.length > 0 && (
             <Button onClick={abrirVincular}>+ Vincular participante</Button>
@@ -241,7 +241,7 @@ export function EventoDetailPage() {
 
       {/* Compras */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h2 className="text-lg font-semibold text-gray-700">Compras</h2>
           {isAdmin && <Button onClick={() => setModalCompra(true)}>+ Adicionar compra</Button>}
         </div>
@@ -265,7 +265,7 @@ export function EventoDetailPage() {
 
       {/* Rateio */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h2 className="text-lg font-semibold text-gray-700">Rateio</h2>
           <Button onClick={calcularRateio} loading={rateioLoading}>Calcular</Button>
         </div>
@@ -320,7 +320,7 @@ export function EventoDetailPage() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Participante</label>
             <select
-              className="border rounded-lg px-3 py-2 text-sm"
+              className="border rounded-lg px-3 py-2 text-sm w-full min-w-0"
               value={vincularForm.participanteId}
               onChange={e => setVincularForm(f => ({ ...f, participanteId: e.target.value }))}
             >
@@ -405,7 +405,7 @@ export function EventoDetailPage() {
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Categoria</label>
-            <select className="border rounded-lg px-3 py-2 text-sm" value={compraForm.categoriaId} onChange={e => setCompraForm(f => ({ ...f, categoriaId: e.target.value }))}>
+            <select className="border rounded-lg px-3 py-2 text-sm w-full min-w-0" value={compraForm.categoriaId} onChange={e => setCompraForm(f => ({ ...f, categoriaId: e.target.value }))}>
               <option value="">Selecione...</option>
               {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
             </select>

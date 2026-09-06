@@ -17,8 +17,8 @@ export function ParticipantesPage() {
   const fecharModal = () => { setModal(null); setSelecionado(null) }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Participantes</h1>
         {isAdmin && <Button onClick={() => setModal('criar')}>+ Novo participante</Button>}
       </div>
